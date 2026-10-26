@@ -110,9 +110,9 @@ export default function CreatorBuilder({
             <p className="keepsake-live-question">{invitation.question.trim() || "Your question will live here."}</p>
             <p className="keepsake-live-opening">{moodConfigs[invitation.mood].opening}</p>
             <div className="keepsake-live-plan" aria-label="Plan preview">
-              <span>{invitation.details.activity.trim() || "Your activity"}</span>
+              <span>{invitation.details.activity?.trim() || "Your activity"}</span>
               <span aria-hidden="true">·</span>
-              <span>{invitation.details.food.trim() || "Something to eat"}</span>
+              <span>{invitation.details.food?.trim() || "Something to eat"}</span>
             </div>
             <span className="keepsake-live-note-rule" aria-hidden="true" />
             <span className="keepsake-live-note-signoff">{moodConfigs[invitation.mood].closing}</span>
