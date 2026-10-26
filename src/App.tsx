@@ -393,8 +393,12 @@ function App() {
     invitationToShare: Invitation
   ): Promise<string> {
     const published = await publishInvitation(
-      invitationToShare
+      invitationToShare,
+      editingInvitationId
     );
+
+    setEditingInvitationId(published.id);
+    await refreshCreatorInvitations();
 
     const url = new URL(window.location.href);
 
