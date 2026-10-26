@@ -295,3 +295,120 @@
 @media (prefers-reduced-motion: reduce) {
   .keepsake-live-note { transform: none; }
 }
+
+
+/* Shared Keepsake DNA: align the builder with the dashboard's warm, editorial surfaces. */
+.keepsake-builder {
+  --ks-paper: #f7f3ed;
+  --ks-paper-deep: #f5ebe3;
+  --ks-ink: #292624;
+  --ks-muted: #81766e;
+  --ks-line: rgba(68, 55, 47, .16);
+  --ks-accent: #a96f5f;
+  --ks-accent-soft: #f2e5dd;
+  width: min(1180px, calc(100% - 64px));
+  padding-top: 24px;
+}
+.keepsake-header { padding-bottom: 32px; }
+.keepsake-header-meta { min-height: 44px; padding-bottom: 14px; }
+.keepsake-header-composition {
+  position: relative;
+  grid-template-columns: minmax(0, 1.3fr) minmax(260px, .7fr);
+  gap: clamp(28px, 5vw, 76px);
+  min-height: 270px;
+  margin-top: 20px;
+  padding: clamp(30px, 4.5vw, 54px);
+  overflow: hidden;
+  border: 1px solid rgba(169,111,95,.19);
+  background:
+    radial-gradient(ellipse at 88% 12%, rgba(226,199,183,.32), transparent 35%),
+    linear-gradient(118deg, #fffdf9 0%, #f5ebe3 100%);
+}
+.keepsake-header-copy { position: relative; z-index: 1; }
+.keepsake-header-kicker { margin-bottom: 3px; font-size: 16px; }
+.keepsake-title {
+  margin-top: 9px;
+  font-size: clamp(3.3rem, 5.4vw, 4.8rem);
+  line-height: .94;
+  letter-spacing: -.055em;
+}
+.keepsake-subtitle { max-width: 380px; margin-top: 17px; font-size: 13px; line-height: 1.65; }
+.keepsake-title-rule { margin-top: 19px; }
+.keepsake-live-note {
+  min-height: 0;
+  padding: 5px 0 5px 24px;
+  border: 0;
+  border-left: 1px solid rgba(169,111,95,.3);
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+.keepsake-live-note::before { display: none; }
+.keepsake-live-note-label { color: #9b877a; font-size: 8px; letter-spacing: .15em; }
+.keepsake-live-note-flower { top: 0; right: 0; color: rgba(169,111,95,.72); }
+.keepsake-live-recipient { margin-top: 29px; color: #a96f5f; font-size: 18px; }
+.keepsake-live-question {
+  max-width: 310px;
+  min-height: 58px;
+  font-size: clamp(2rem, 3vw, 2.7rem);
+  line-height: .98;
+}
+.keepsake-live-note-rule { margin-top: 18px; }
+.keepsake-live-note-signoff { color: #9b877a; }
+.keepsake-composition { gap: clamp(34px, 5.5vw, 74px); }
+.keepsake-section-topline { padding-bottom: 15px; }
+.keepsake-section-index { border-radius: 50%; }
+.keepsake-section-topline h2 { font-size: 27px; }
+.keepsake-section-flourish { color: #9b877a; font-size: 8px; letter-spacing: .12em; }
+.keepsake-recipient-block { padding-top: 22px; }
+.keepsake-recipient-input { font-size: 32px !important; }
+.keepsake-question-input { font-size: clamp(2rem, 3.3vw, 2.7rem) !important; }
+.keepsake-mood { border-color: var(--ks-line); background: #fffdf9; }
+.keepsake-mood.is-selected { border-color: rgba(169,111,95,.65); background: #f5ebe3; }
+.keepsake-field input, .keepsake-field textarea,
+.keepsake-destination-name, .keepsake-destination-area {
+  border-color: var(--ks-line);
+  background-color: #fffdf9;
+}
+.keepsake-destination { border-left-color: rgba(169,111,95,.55); }
+.keepsake-more { border-color: var(--ks-line); }
+.keepsake-footer { border-top-color: var(--ks-line); }
+.keepsake-create-button {
+  border: 1px solid #a96f5f;
+  border-radius: 3px;
+  background: #a96f5f;
+  color: #fffdf9;
+  box-shadow: 0 7px 18px rgba(117,72,59,.11);
+}
+.keepsake-create-button:hover { background: #925d50; }
+.keepsake-preview-button { color: #62564f; }
+.keepsake-share {
+  border: 1px solid rgba(169,111,95,.19);
+  background: #fffdf9;
+}
+@media (max-width: 820px) {
+  .keepsake-builder { width: min(100% - 40px, 680px); }
+  .keepsake-header-composition {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+    min-height: 0;
+    padding: 30px;
+  }
+  .keepsake-live-note {
+    width: 100%;
+    padding: 18px 0 0;
+    border-top: 1px solid rgba(169,111,95,.3);
+    border-left: 0;
+  }
+  .keepsake-live-recipient { margin-top: 20px; }
+  .keepsake-live-question { min-height: 0; }
+}
+@media (max-width: 460px) {
+  .keepsake-builder { width: calc(100% - 32px); padding-top: 18px; }
+  .keepsake-header-composition { gap: 20px; padding: 23px 19px; }
+  .keepsake-title { font-size: clamp(2.9rem, 12vw, 3.5rem); }
+  .keepsake-live-note { padding-top: 15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .keepsake-live-note { transform: none; }
+}
