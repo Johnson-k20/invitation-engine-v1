@@ -517,9 +517,17 @@ export default function RecipientExperience({
       return;
     }
 
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    const revealDelay = prefersReducedMotion
+      ? 0
+      : getRevealDelay(currentBeat);
+
     const timeout = window.setTimeout(() => {
       setVisibleBeats((current) => current + 1);
-    }, getRevealDelay(currentBeat));
+    }, revealDelay);
 
     return () => window.clearTimeout(timeout);
   }, [stage, visibleBeats, revealBeats]);
