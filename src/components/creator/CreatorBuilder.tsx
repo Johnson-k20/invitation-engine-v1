@@ -186,7 +186,7 @@ export default function CreatorBuilder({
 
           <fieldset className="keepsake-feeling">
             <legend className="keepsake-label">THE FEELING</legend>
-            <p className="keepsake-feeling-hint">Choose the tone that feels right.</p>
+            <p className="keepsake-feeling-hint">Choose a tone to see it take shape.</p>
             <div className="keepsake-moods">
               {moods.map((mood) => (
                 <button
@@ -203,7 +203,6 @@ export default function CreatorBuilder({
                 </button>
               ))}
             </div>
-            <p className="keepsake-feeling-footnote">This shapes the voice and pace, not the plans themselves.</p>
           </fieldset>
         </section>
 
