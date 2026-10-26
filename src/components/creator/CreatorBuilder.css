@@ -412,3 +412,81 @@
 @media (prefers-reduced-motion: reduce) {
   .keepsake-live-note { transform: none; }
 }
+
+
+/* Mood selection — compact editorial strip, not three generic cards. */
+.keepsake-feeling { padding-top: 21px; }
+.keepsake-feeling-hint {
+  margin: 0 0 12px;
+  color: var(--ks-muted);
+  font: italic 15px/1.3 var(--ks-serif);
+}
+.keepsake-moods {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid var(--ks-line);
+  border-bottom: 1px solid var(--ks-line);
+}
+.keepsake-mood {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 91px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  padding: 14px 12px 15px;
+  border: 0;
+  border-right: 1px solid var(--ks-line);
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+  transform: none;
+}
+.keepsake-mood:last-child { border-right: 0; }
+.keepsake-mood:hover { border-color: var(--ks-line); background: rgba(255,253,249,.55); transform: none; }
+.keepsake-mood:focus-visible { z-index: 1; outline-offset: -3px; }
+.keepsake-mood-name {
+  color: var(--ks-ink);
+  font: 500 22px/1 var(--ks-serif);
+  letter-spacing: -.02em;
+}
+.keepsake-mood-description {
+  max-width: 100%;
+  color: var(--ks-muted);
+  font: 10px/1.45 var(--ks-sans);
+}
+.keepsake-mood-indicator {
+  position: absolute;
+  right: 12px;
+  bottom: 0;
+  left: 12px;
+  height: 2px;
+  background: transparent;
+  transition: background .18s ease;
+}
+.keepsake-mood.is-selected { border-color: var(--ks-line); background: #fffdf9; }
+.keepsake-mood.is-selected .keepsake-mood-name { color: var(--ks-accent); }
+.keepsake-mood.is-selected .keepsake-mood-indicator { background: var(--ks-accent); }
+.keepsake-feeling-footnote {
+  margin: 10px 0 0;
+  color: var(--ks-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+@media (max-width: 460px) {
+  .keepsake-moods { gap: 0; }
+  .keepsake-mood {
+    min-height: 86px;
+    padding: 12px 7px 14px;
+    gap: 6px;
+  }
+  .keepsake-mood-name { font-size: 19px; }
+  .keepsake-mood-description { font-size: 9px; line-height: 1.4; }
+  .keepsake-mood-indicator { right: 7px; left: 7px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .keepsake-mood-indicator { transition: none; }
+}
