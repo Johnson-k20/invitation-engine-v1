@@ -727,6 +727,13 @@ export default function RecipientExperience({
               </p>
             )}
 
+            {invitation.destination.reveal === "after-accept" &&
+              invitation.destination.hint?.trim() && (
+                <p className="recipient-question-copy recipient-destination-hint">
+                  {invitation.destination.hint}
+                </p>
+              )}
+
             <div className="recipient-response-actions">
               <button
                 type="button"
