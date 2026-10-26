@@ -10,10 +10,10 @@ type CreatorBuilderProps = {
   onCreateLink: (invitation: Invitation) => string | void | Promise<string | void>;
 };
 
-const moods: { id: Mood; name: string; mark: string }[] = [
-  { id: "cozy", name: "Cozy", mark: "☁" },
-  { id: "playful", name: "Playful", mark: "✳" },
-  { id: "elegant", name: "Elegant", mark: "✧" },
+const moods: { id: Mood; name: string; description: string }[] = [
+  { id: "cozy", name: "Cozy", description: "Warm and unhurried" },
+  { id: "playful", name: "Playful", description: "Lighthearted and spontaneous" },
+  { id: "elegant", name: "Elegant", description: "Composed and intentional" },
 ];
 
 const emojis = ["♡", "✦", "☀", "🌷", "✨", "☕", "🌙", "🍓", "💌", "🎈", "🪻", "🍷"];
@@ -176,6 +176,7 @@ export default function CreatorBuilder({
 
           <fieldset className="keepsake-feeling">
             <legend className="keepsake-label">THE FEELING</legend>
+            <p className="keepsake-feeling-hint">Choose the tone that feels right.</p>
             <div className="keepsake-moods">
               {moods.map((mood) => (
                 <button
@@ -185,12 +186,13 @@ export default function CreatorBuilder({
                   aria-pressed={invitation.mood === mood.id}
                   onClick={() => onChange({ ...invitation, mood: mood.id })}
                 >
-                  <span className="keepsake-mood-mark" aria-hidden="true">{mood.mark}</span>
-                  <span>{mood.name}</span>
-                  <span className="keepsake-mood-dot" aria-hidden="true" />
+                  <span className="keepsake-mood-name">{mood.name}</span>
+                  <span className="keepsake-mood-description">{mood.description}</span>
+                  <span className="keepsake-mood-indicator" aria-hidden="true" />
                 </button>
               ))}
             </div>
+            <p className="keepsake-feeling-footnote">This shapes the voice and pace, not the plans themselves.</p>
           </fieldset>
         </section>
 
