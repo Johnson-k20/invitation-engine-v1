@@ -90,19 +90,32 @@ export default function CreatorBuilder({
         <div className="keepsake-header-meta">
           <span className="keepsake-mark" aria-hidden="true">✳</span>
           <span className="keepsake-overline">A small thing, made personal</span>
-          <span className="keepsake-edition">INVITATION NO. 01</span>
+          <span className="keepsake-edition">MADE FOR ONE PERSON</span>
         </div>
-        <h1 className="keepsake-title">Make it <em>personal.</em></h1>
-        <p className="keepsake-subtitle">Create something they’ll want to open.</p>
-        <div className="keepsake-title-rule"><span>✦</span></div>
+        <div className="keepsake-header-composition">
+          <div className="keepsake-header-copy">
+            <p className="keepsake-header-kicker">A note before the plans</p>
+            <h1 className="keepsake-title">Make it <em>personal.</em></h1>
+            <p className="keepsake-subtitle">Start with what you want to ask. The details can find their place around it.</p>
+            <div className="keepsake-title-rule"><span>✦</span></div>
+          </div>
+          <aside className="keepsake-live-note" aria-label="Live invitation preview">
+            <span className="keepsake-live-note-label">A GLIMPSE OF YOUR INVITATION</span>
+            <span className="keepsake-live-note-flower" aria-hidden="true">✳</span>
+            <p className="keepsake-live-recipient">{invitation.recipient.name.trim() || "Someone special"}</p>
+            <p className="keepsake-live-question">{invitation.question.trim() || "Your question will live here."}</p>
+            <span className="keepsake-live-note-rule" aria-hidden="true" />
+            <span className="keepsake-live-note-signoff">made with a little thought</span>
+          </aside>
+        </div>
       </header>
 
       <div className="keepsake-composition">
         <section className="keepsake-ask" aria-labelledby="keepsake-ask-title">
           <div className="keepsake-section-topline">
-            <span className="keepsake-section-index">01</span>
+            <span className="keepsake-section-index" aria-hidden="true">✳</span>
             <h2 id="keepsake-ask-title">The ask</h2>
-            <span className="keepsake-section-flourish" aria-hidden="true">♡</span>
+            <span className="keepsake-section-flourish" aria-hidden="true">WORDS, WITH FEELING</span>
           </div>
 
           <div className="keepsake-recipient-block">
@@ -183,9 +196,9 @@ export default function CreatorBuilder({
 
         <section className="keepsake-plan" aria-labelledby="keepsake-plan-title">
           <div className="keepsake-section-topline">
-            <span className="keepsake-section-index">02</span>
+            <span className="keepsake-section-index" aria-hidden="true">✧</span>
             <h2 id="keepsake-plan-title">The plan</h2>
-            <span className="keepsake-section-flourish" aria-hidden="true">✧</span>
+            <span className="keepsake-section-flourish" aria-hidden="true">THE LITTLE DETAILS</span>
           </div>
           <div className="keepsake-plan-intro">A little time, set aside for the two of you.</div>
 
