@@ -645,8 +645,13 @@ function App() {
           type="button"
           onClick={() => setMode("dashboard")}
         >
-          Back to dashboard
+          ← Dashboard
         </button>
+
+        <div className="preview-mode-notice" role="status">
+          <span className="preview-mode-indicator" aria-hidden="true" />
+          <span><strong>Preview mode</strong> · Responses here are simulated, not saved.</span>
+        </div>
 
         <RecipientExperience
           invitation={invitation}
