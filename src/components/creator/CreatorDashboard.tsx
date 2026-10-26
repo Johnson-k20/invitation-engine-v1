@@ -102,31 +102,38 @@ export function CreatorDashboard({
       </header>
 
       <section className="dashboard-intro">
-        <div>
-          <p className="dashboard-eyebrow">YOUR INVITATION STUDIO</p>
-          <h1>A little room for <em>meaningful plans.</em></h1>
-          <p className="dashboard-intro-copy">Make something personal, then see how it lands.</p>
+        <div className="dashboard-intro-copy-block">
+          <p className="dashboard-eyebrow">YOUR INVITATION STUDIO <span aria-hidden="true">/</span> OVERVIEW</p>
+          <h1>Make room for <em>something lovely.</em></h1>
+          <p className="dashboard-intro-copy">A quiet place to shape a plan, send it out, and see what comes back.</p>
         </div>
-        <button type="button" className="dashboard-create-button" onClick={onCreate}>
-          <span aria-hidden="true">＋</span> Create invitation
-        </button>
+        <div className="dashboard-intro-side">
+          <span className="dashboard-hero-flourish" aria-hidden="true">✳</span>
+          <button type="button" className="dashboard-create-button" onClick={onCreate}>
+            <span aria-hidden="true">＋</span> Create an invitation <span className="dashboard-create-arrow" aria-hidden="true">↗</span>
+          </button>
+          <span className="dashboard-hero-note">A thoughtful little thing, made by you.</span>
+        </div>
       </section>
 
       <section className="dashboard-stats" aria-label="Invitation summary">
         <article className="dashboard-stat">
-          <span className="dashboard-stat-label">ALL INVITATIONS</span>
-          <strong>{counts.total}</strong>
-          <span className="dashboard-stat-foot">Kept in one place</span>
+          <span className="dashboard-stat-index">01 / COLLECTION</span>
+          <span className="dashboard-stat-label">All invitations</span>
+          <strong>{counts.total.toString().padStart(2, "0")}</strong>
+          <span className="dashboard-stat-foot">Every plan you’ve put into the world</span>
         </article>
         <article className="dashboard-stat">
-          <span className="dashboard-stat-label">AWAITING A REPLY</span>
-          <strong>{counts.waiting}</strong>
-          <span className="dashboard-stat-foot">Still out in the world</span>
+          <span className="dashboard-stat-index">02 / OUT THERE</span>
+          <span className="dashboard-stat-label">Awaiting a reply</span>
+          <strong>{counts.waiting.toString().padStart(2, "0")}</strong>
+          <span className="dashboard-stat-foot">Invitations still waiting to be answered</span>
         </article>
         <article className="dashboard-stat">
-          <span className="dashboard-stat-label">ACCEPTED</span>
-          <strong>{counts.accepted}</strong>
-          <span className="dashboard-stat-foot">Plans to look forward to</span>
+          <span className="dashboard-stat-index">03 / A YES</span>
+          <span className="dashboard-stat-label">Accepted</span>
+          <strong>{counts.accepted.toString().padStart(2, "0")}</strong>
+          <span className="dashboard-stat-foot">Plans you can start looking forward to</span>
         </article>
       </section>
 
@@ -134,19 +141,23 @@ export function CreatorDashboard({
         <div className="dashboard-list-heading">
           <div>
             <p className="dashboard-eyebrow">YOUR COLLECTION</p>
-            <h2>Invitations <span>{invitations.length}</span></h2>
+            <h2>Your collection <span>{filteredInvitations.length} shown</span></h2>
+            <p className="dashboard-list-subtitle">Each invitation, and where things stand.</p>
           </div>
           <label className="dashboard-search">
             <span className="dashboard-visually-hidden">Search invitations</span>
             <span aria-hidden="true">⌕</span>
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Find someone…" />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search names or messages…" />
           </label>
         </div>
 
-        <div className="dashboard-filters" role="group" aria-label="Filter invitations">
-          <button type="button" className={filter === "all" ? "is-active" : ""} onClick={() => setFilter("all")}>All</button>
-          <button type="button" className={filter === "waiting" ? "is-active" : ""} onClick={() => setFilter("waiting")}>Awaiting reply</button>
-          <button type="button" className={filter === "responded" ? "is-active" : ""} onClick={() => setFilter("responded")}>Responded</button>
+        <div className="dashboard-list-controls">
+          <div className="dashboard-filters" role="group" aria-label="Filter invitations">
+            <button type="button" className={filter === "all" ? "is-active" : ""} onClick={() => setFilter("all")}>Everything <span>{counts.total}</span></button>
+            <button type="button" className={filter === "waiting" ? "is-active" : ""} onClick={() => setFilter("waiting")}>Awaiting <span>{counts.waiting}</span></button>
+            <button type="button" className={filter === "responded" ? "is-active" : ""} onClick={() => setFilter("responded")}>Responded</button>
+          </div>
+          {search && <button type="button" className="dashboard-clear-search" onClick={() => setSearch("")}>Clear search ×</button>}
         </div>
 
         {error && (
