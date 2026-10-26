@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 
 import { CreatorBuilder } from "./components/creator/CreatorBuilder";
+import { CreatorDashboard } from "./components/creator/CreatorDashboard";
 import RecipientExperience from "./components/recipient/RecipientExperience";
 import {
   AuthPanel,
@@ -12,13 +13,15 @@ import { supabase } from "./lib/supabase";
 import {
   publishInvitation,
   getPublishedInvitation,
+  getCreatorInvitations,
+  type PublishedInvitation,
 } from "./lib/invitations";
 
 import { defaultInvitation } from "./data/defaultInvitation";
 import { buildDateExperience } from "./experience/buildDateExperience";
 import type { Invitation } from "./experience/types";
 
-type AppMode = "builder" | "preview";
+type AppMode = "dashboard" | "builder" | "preview";
 
 const LEGACY_INVITATION_QUERY = "invite";
 const PUBLIC_TOKEN_QUERY = "token";
@@ -211,7 +214,11 @@ function App() {
     () => legacyInvitation ?? defaultInvitation
   );
 
-  const [mode, setMode] = useState<AppMode>("builder");
+  const [mode, setMode] = useState<AppMode>("dashboard");
+  const [creatorInvitations, setCreatorInvitations] = useState<PublishedInvitation[]>([]);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
+  const [dashboardError, setDashboardError] = useState("");
+  const [editingInvitationId, setEditingInvitationId] = useState<string | null>(null);
 
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -475,6 +482,37 @@ function App() {
     return <AuthPanel />;
   }
 
+  if (mode === "dashboard") {
+    return (
+      <CreatorDashboard
+        invitations={creatorInvitations}
+        loading={dashboardLoading}
+        error={dashboardError}
+        onCreate={() => {
+          setInvitation({
+            ...defaultInvitation,
+            id: crypto.randomUUID(),
+          });
+          setEditingInvitationId(null);
+          setMode("builder");
+        }}
+        onEdit={(record) => {
+          setInvitation(record.invitation_data);
+          if (record.response) {
+            setEditingInvitationId(null);
+            setMode("preview");
+            return;
+          }
+          setEditingInvitationId(record.id);
+          setMode("builder");
+        }}
+        onRefresh={refreshCreatorInvitations}
+        onSignOut={handleSignOut}
+        signingOut={signingOut}
+      />
+    );
+  }
+
   const experience = buildDateExperience(invitation);
 
   /*
@@ -486,9 +524,9 @@ function App() {
         <button
           className="preview-back-button"
           type="button"
-          onClick={() => setMode("builder")}
+          onClick={() => setMode("dashboard")}
         >
-          Back to builder
+          Back to dashboard
         </button>
 
         <RecipientExperience
