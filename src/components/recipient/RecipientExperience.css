@@ -754,3 +754,192 @@
     animation: none;
   }
 }
+
+
+/* =========================================================
+   DISTINCT RECIPIENT ART DIRECTIONS
+   These rules target the actual recipient-facing experience.
+   Mood is carried by the root .mood-* class in RecipientExperience.tsx.
+========================================================= */
+
+/* Cozy: a warm, framed letter with a softly layered paper surface. */
+.recipient-experience.mood-cozy {
+  background:
+    radial-gradient(ellipse at 50% 12%, rgba(226, 197, 178, .28), transparent 42%),
+    #faf5ef;
+}
+.recipient-experience.mood-cozy .recipient-opening,
+.recipient-experience.mood-cozy .recipient-question,
+.recipient-experience.mood-cozy .recipient-complete,
+.recipient-experience.mood-cozy .recipient-declined {
+  position: relative;
+  padding: 38px 30px 32px;
+  border: 1px solid rgba(169, 111, 95, .28);
+  background: rgba(255, 253, 249, .78);
+  box-shadow: 0 18px 55px rgba(87, 59, 43, .07);
+}
+.recipient-experience.mood-cozy .recipient-opening::before,
+.recipient-experience.mood-cozy .recipient-question::before,
+.recipient-experience.mood-cozy .recipient-complete::before,
+.recipient-experience.mood-cozy .recipient-declined::before {
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(169, 111, 95, .12);
+  content: "";
+  pointer-events: none;
+}
+.recipient-experience.mood-cozy .recipient-opening-title,
+.recipient-experience.mood-cozy .recipient-question-title,
+.recipient-experience.mood-cozy .recipient-complete-title,
+.recipient-experience.mood-cozy .recipient-declined-title {
+  font-size: clamp(43px, 9vw, 65px);
+  line-height: 1.02;
+}
+.recipient-experience.mood-cozy .recipient-divider {
+  width: 42px;
+  margin: 24px auto;
+}
+.recipient-experience.mood-cozy .recipient-button-primary {
+  background: var(--recipient-accent);
+  border-color: var(--recipient-accent);
+  border-radius: 999px;
+}
+
+/* Playful: lively placement, warmer colour field, and an expressive marker. */
+.recipient-experience.mood-playful {
+  background:
+    radial-gradient(circle at 13% 18%, rgba(173, 118, 91, .13) 0 4px, transparent 5px),
+    radial-gradient(circle at 85% 78%, rgba(173, 118, 91, .12) 0 7px, transparent 8px),
+    linear-gradient(145deg, #fffaf5 0%, #f8e9df 100%);
+}
+.recipient-experience.mood-playful .recipient-opening,
+.recipient-experience.mood-playful .recipient-question,
+.recipient-experience.mood-playful .recipient-complete,
+.recipient-experience.mood-playful .recipient-declined {
+  position: relative;
+  align-items: flex-start;
+  padding: 27px 24px 25px;
+  text-align: left;
+}
+.recipient-experience.mood-playful .recipient-opening::before,
+.recipient-experience.mood-playful .recipient-question::before,
+.recipient-experience.mood-playful .recipient-complete::before,
+.recipient-experience.mood-playful .recipient-declined::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 42px;
+  height: 3px;
+  background: var(--recipient-accent);
+  content: "";
+}
+.recipient-experience.mood-playful .recipient-opening-title,
+.recipient-experience.mood-playful .recipient-question-title,
+.recipient-experience.mood-playful .recipient-complete-title,
+.recipient-experience.mood-playful .recipient-declined-title {
+  max-width: 390px;
+  font-size: clamp(45px, 10vw, 70px);
+  line-height: .98;
+  letter-spacing: -2.2px;
+  text-align: left;
+}
+.recipient-experience.mood-playful .recipient-opening-copy,
+.recipient-experience.mood-playful .recipient-question-copy,
+.recipient-experience.mood-playful .recipient-complete-summary,
+.recipient-experience.mood-playful .recipient-declined-copy {
+  margin-left: 0;
+  text-align: left;
+}
+.recipient-experience.mood-playful .recipient-divider {
+  width: 54px;
+  margin: 25px 0;
+}
+.recipient-experience.mood-playful .recipient-response-actions,
+.recipient-experience.mood-playful .recipient-complete-actions {
+  margin-left: 0;
+}
+.recipient-experience.mood-playful .recipient-button {
+  border-radius: 999px;
+}
+.recipient-experience.mood-playful .recipient-button-primary {
+  background: var(--recipient-accent);
+  border-color: var(--recipient-accent);
+}
+
+/* Elegant: a quiet editorial column, hairline frame, and measured spacing. */
+.recipient-experience.mood-elegant {
+  background:
+    linear-gradient(90deg, transparent calc(50% - 1px), rgba(146, 118, 91, .055) 50%, transparent calc(50% + 1px)),
+    #fbf9f5;
+}
+.recipient-experience.mood-elegant .recipient-experience-inner {
+  max-width: 470px;
+}
+.recipient-experience.mood-elegant .recipient-opening,
+.recipient-experience.mood-elegant .recipient-question,
+.recipient-experience.mood-elegant .recipient-complete,
+.recipient-experience.mood-elegant .recipient-declined {
+  padding: 24px 20px 20px;
+  border-top: 1px solid var(--recipient-accent-line);
+  border-bottom: 1px solid var(--recipient-accent-line);
+}
+.recipient-experience.mood-elegant .recipient-eyebrow {
+  letter-spacing: .24em;
+  font-size: 9px;
+}
+.recipient-experience.mood-elegant .recipient-opening-title,
+.recipient-experience.mood-elegant .recipient-question-title,
+.recipient-experience.mood-elegant .recipient-complete-title,
+.recipient-experience.mood-elegant .recipient-declined-title {
+  font-size: clamp(38px, 7vw, 55px);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -.7px;
+}
+.recipient-experience.mood-elegant .recipient-opening-copy,
+.recipient-experience.mood-elegant .recipient-question-copy,
+.recipient-experience.mood-elegant .recipient-complete-summary,
+.recipient-experience.mood-elegant .recipient-declined-copy {
+  max-width: 280px;
+  font-size: 18px;
+  line-height: 1.8;
+}
+.recipient-experience.mood-elegant .recipient-divider {
+  width: 28px;
+  margin: 34px auto;
+}
+.recipient-experience.mood-elegant .recipient-button {
+  border-radius: 0;
+  letter-spacing: .035em;
+}
+.recipient-experience.mood-elegant .recipient-button-primary {
+  background: transparent;
+  color: var(--recipient-ink);
+  border-color: var(--recipient-accent);
+}
+.recipient-experience.mood-elegant .recipient-button-primary:hover:not(:disabled) {
+  background: rgba(146, 118, 91, .08);
+  color: var(--recipient-ink);
+  box-shadow: none;
+}
+
+@media (max-width: 480px) {
+  .recipient-experience.mood-cozy .recipient-opening,
+  .recipient-experience.mood-cozy .recipient-question,
+  .recipient-experience.mood-cozy .recipient-complete,
+  .recipient-experience.mood-cozy .recipient-declined {
+    padding: 31px 19px 25px;
+  }
+  .recipient-experience.mood-playful .recipient-opening,
+  .recipient-experience.mood-playful .recipient-question,
+  .recipient-experience.mood-playful .recipient-complete,
+  .recipient-experience.mood-playful .recipient-declined {
+    padding: 24px 10px 22px;
+  }
+  .recipient-experience.mood-elegant .recipient-opening,
+  .recipient-experience.mood-elegant .recipient-question,
+  .recipient-experience.mood-elegant .recipient-complete,
+  .recipient-experience.mood-elegant .recipient-declined {
+    padding: 22px 8px 18px;
+  }
+}
