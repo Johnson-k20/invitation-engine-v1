@@ -490,3 +490,59 @@
 @media (prefers-reduced-motion: reduce) {
   .keepsake-mood-indicator { transition: none; }
 }
+
+
+/* Mood personality is demonstrated in the live preview, not just in the selector. */
+.keepsake-live-note-label { display: block; }
+.keepsake-live-opening {
+  max-width: 290px;
+  margin: 13px 0 0;
+  color: #62564f;
+  font: italic 17px/1.35 var(--ks-serif);
+  transition: opacity .18s ease, transform .18s ease;
+}
+.keepsake-live-plan {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  color: #81766e;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.keepsake-live-plan > span:nth-child(2) { color: var(--ks-accent); }
+.keepsake-live-note-signoff { display: inline-block; margin-top: 11px; }
+.keepsake-live-note--cozy .keepsake-live-opening {
+  font-size: 19px;
+  font-style: italic;
+  line-height: 1.48;
+}
+.keepsake-live-note--cozy .keepsake-live-note-rule { width: 54px; }
+.keepsake-live-note--playful .keepsake-live-opening {
+  font-style: normal;
+  font-weight: 500;
+  color: #8e594a;
+}
+.keepsake-live-note--playful .keepsake-live-note-flower { transform: rotate(-12deg); }
+.keepsake-live-note--playful .keepsake-live-note-rule { width: 72px; }
+.keepsake-live-note--elegant .keepsake-live-opening {
+  font-size: 15px;
+  font-style: normal;
+  letter-spacing: .015em;
+}
+.keepsake-live-note--elegant .keepsake-live-plan { letter-spacing: .025em; }
+.keepsake-live-note--elegant .keepsake-live-note-rule { width: 36px; }
+.keepsake-mood.is-selected[data-mood="cozy"] { background: #fbf4ee; }
+.keepsake-mood.is-selected[data-mood="playful"] { background: #f8eee7; }
+.keepsake-mood.is-selected[data-mood="elegant"] { background: #fffdf9; }
+.keepsake-mood[data-mood="playful"] .keepsake-mood-indicator { height: 3px; }
+.keepsake-mood[data-mood="elegant"] .keepsake-mood-indicator { left: 25%; right: 25%; }
+.keepsake-mood[data-mood="cozy"] .keepsake-mood-indicator { border-radius: 8px; }
+@media (max-width: 820px) {
+  .keepsake-live-opening { max-width: 100%; }
+  .keepsake-live-plan { margin-top: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .keepsake-live-opening { transition: none; }
+}
