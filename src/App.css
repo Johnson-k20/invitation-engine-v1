@@ -1710,3 +1710,51 @@ button {
   .reveal-continue { animation: none; }
   .reveal-calendar-button { transition: none; }
 }
+
+
+/* Make simulated creator previews unmistakable without changing the keepsake itself. */
+.preview-mode-notice {
+  position: fixed;
+  z-index: 19;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: min(440px, calc(100vw - 190px));
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid rgba(169, 111, 95, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 253, 249, 0.94);
+  color: #74665d;
+  box-shadow: 0 4px 18px rgba(41, 38, 36, 0.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: var(--font-interface);
+  font-size: 10px;
+  line-height: 1.4;
+}
+.preview-mode-notice strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+.preview-mode-indicator {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+@media (max-width: 560px) {
+  .preview-mode-notice {
+    top: 60px;
+    right: 12px;
+    left: 12px;
+    max-width: none;
+    justify-content: center;
+    min-height: 32px;
+    padding: 6px 9px;
+    font-size: 9px;
+  }
+}
