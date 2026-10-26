@@ -775,7 +775,7 @@ export default function RecipientExperience({
           </section>
         )}
 
-        {stage === "revealing" && (
+        {(stage === "revealing" || stage === "complete") && (
           <section className="recipient-revealing">
             <h1 className="recipient-reveal-heading">
               {mood === "playful"
@@ -797,68 +797,54 @@ export default function RecipientExperience({
                 ))}
             </div>
 
-            {visibleBeats < revealBeats.length && (
+            {stage === "revealing" && visibleBeats < revealBeats.length && (
               <div className="recipient-reveal-progress">
                 <span aria-hidden="true" />
                 <p>A little more to come</p>
               </div>
             )}
-          </section>
-        )}
 
-        {stage === "complete" && (
-          <section className="recipient-complete">
-            <h1 className="recipient-complete-title">
-              {closingTitle}
-            </h1>
+            {stage === "complete" && (
+              <div className="recipient-complete recipient-plan-closing">
+                <h2 className="recipient-complete-title">
+                  {closingTitle}
+                </h2>
 
-            <div className="recipient-complete-summary">
-              <CalendarDays
-                size={18}
-                aria-hidden="true"
-              />
+                <div className="recipient-complete-summary">
+                  <CalendarDays size={18} aria-hidden="true" />
+                  <span>{formatSchedule(invitation)}</span>
+                </div>
 
-              <span>{formatSchedule(invitation)}</span>
-            </div>
+                <div className="recipient-complete-actions">
+                  <button
+                    type="button"
+                    className="recipient-button recipient-button-primary"
+                    onClick={addToCalendar}
+                  >
+                    <CalendarDays size={17} aria-hidden="true" />
+                    Add to calendar
+                  </button>
 
-            <div className="recipient-complete-actions">
-              <button
-                type="button"
-                className="recipient-button recipient-button-primary"
-                onClick={addToCalendar}
-              >
-                <CalendarDays
-                  size={17}
-                  aria-hidden="true"
-                />
-                Add to calendar
-              </button>
+                  {mapUrl && (
+                    <a
+                      className="recipient-button recipient-button-secondary"
+                      href={mapUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <MapPin size={17} aria-hidden="true" />
+                      Open the map
+                    </a>
+                  )}
+                </div>
 
-              {mapUrl && (
-                <a
-                  className="recipient-button recipient-button-secondary"
-                  href={mapUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <MapPin
-                    size={17}
-                    aria-hidden="true"
-                  />
-                  Open the map
-                </a>
-              )}
-            </div>
-
-            {calendarError && (
-              <div
-                className="recipient-response-error"
-                role="alert"
-              >
-                {calendarError}
+                {calendarError && (
+                  <div className="recipient-response-error" role="alert">
+                    {calendarError}
+                  </div>
+                )}
               </div>
             )}
-
           </section>
         )}
 
