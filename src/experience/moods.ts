@@ -11,24 +11,24 @@ export type MoodConfig = {
 export const moods: Record<Mood, MoodConfig> = {
   cozy: {
     name: "Cozy",
-    opening: "I made something for you.",
-    revealIntro: "Okay. Here's the plan.",
+    opening: "I thought you might like this.",
+    revealIntro: "",
     closing: "See you soon.",
     pacing: "slow",
   },
 
   playful: {
     name: "Playful",
-    opening: "Okay, I have a little plan for us.",
-    revealIntro: "Here's what I've got in mind.",
+    opening: "I have an idea for us.",
+    revealIntro: "",
     closing: "This should be fun.",
     pacing: "quick",
   },
 
   elegant: {
     name: "Elegant",
-    opening: "I thought I'd make this one a little special.",
-    revealIntro: "The plan.",
+    opening: "I would like to take you out.",
+    revealIntro: "",
     closing: "Until then.",
     pacing: "normal",
   },
