@@ -21,7 +21,7 @@ import { defaultInvitation } from "./data/defaultInvitation";
 import { buildDateExperience } from "./experience/buildDateExperience";
 import type { Invitation } from "./experience/types";
 
-type AppMode = "dashboard" | "builder" | "preview";
+type AppMode = "dashboard" | "builder" | "preview" | "response";
 
 const LEGACY_INVITATION_QUERY = "invite";
 const PUBLIC_TOKEN_QUERY = "token";
@@ -219,6 +219,7 @@ function App() {
   const [dashboardLoading, setDashboardLoading] = useState(false);
   const [dashboardError, setDashboardError] = useState("");
   const [editingInvitationId, setEditingInvitationId] = useState<string | null>(null);
+  const [selectedResponse, setSelectedResponse] = useState<PublishedInvitation | null>(null);
 
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -539,13 +540,17 @@ function App() {
           setEditingInvitationId(null);
           setMode("builder");
         }}
+        onPreview={(record) => {
+          setInvitation(record.invitation_data);
+          setEditingInvitationId(null);
+          setMode("preview");
+        }}
+        onViewResponse={(record) => {
+          setSelectedResponse(record);
+          setMode("response");
+        }}
         onEdit={(record) => {
           setInvitation(record.invitation_data);
-          if (record.response) {
-            setEditingInvitationId(null);
-            setMode("preview");
-            return;
-          }
           setEditingInvitationId(record.id);
           setMode("builder");
         }}
@@ -557,6 +562,77 @@ function App() {
   }
 
   const experience = buildDateExperience(invitation);
+
+  /*
+   * View the actual response saved by the recipient.
+   */
+  if (mode === "response" && selectedResponse) {
+    const responseLabel = selectedResponse.response === "accepted"
+      ? "They said yes."
+      : "They would prefer another time.";
+    const respondedAt = selectedResponse.responded_at
+      ? new Intl.DateTimeFormat(undefined, {
+          dateStyle: "medium",
+          timeStyle: "short",
+        }).format(new Date(selectedResponse.responded_at))
+      : null;
+
+    return (
+      <main style={{
+        minHeight: "100vh",
+        padding: "28px 20px",
+        display: "grid",
+        placeItems: "center",
+        background: "#faf8f4",
+        color: "#292624",
+        fontFamily: "Inter, sans-serif",
+      }}>
+        <section style={{
+          width: "min(100%, 560px)",
+          padding: "clamp(24px, 5vw, 44px)",
+          border: "1px solid rgba(64, 51, 44, 0.13)",
+          background: "#fffdf9",
+        }}>
+          <p style={{ color: "#a96f5f", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase" }}>
+            Invitation response
+          </p>
+          <h1 style={{ margin: "12px 0", fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: "clamp(34px, 7vw, 48px)", fontWeight: 500 }}>
+            {selectedResponse.invitation_data.recipient.name || "Your invitation"}
+          </h1>
+          <p style={{ color: "#62564f", lineHeight: 1.7 }}>
+            {selectedResponse.invitation_data.question}
+          </p>
+          <div style={{ margin: "26px 0", padding: "20px", background: "#f7eee8", borderLeft: "3px solid #a96f5f" }}>
+            <p style={{ margin: 0, fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#8d6659" }}>
+              Their answer
+            </p>
+            <h2 style={{ margin: "10px 0 4px", fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: "32px", fontWeight: 500 }}>
+              {responseLabel}
+            </h2>
+            {respondedAt && <p style={{ margin: 0, color: "#82786f", fontSize: "12px" }}>Received {respondedAt}</p>}
+          </div>
+          <p style={{ color: "#82786f", fontSize: "13px", lineHeight: 1.7 }}>
+            {selectedResponse.response === "accepted"
+              ? "Make it a good one."
+              : "You can edit the invitation or make a new plan."}
+          </p>
+          <button type="button" onClick={() => setMode("dashboard")} style={{
+            marginTop: "12px",
+            minHeight: "42px",
+            padding: "0 16px",
+            border: "1px solid #a96f5f",
+            borderRadius: "3px",
+            background: "#a96f5f",
+            color: "#fffaf5",
+            font: "500 12px Inter, sans-serif",
+            cursor: "pointer",
+          }}>
+            ← Back to invitations
+          </button>
+        </section>
+      </main>
+    );
+  }
 
   /*
    * Creator preview mode.
