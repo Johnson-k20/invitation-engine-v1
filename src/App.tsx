@@ -292,6 +292,44 @@ function App() {
   }, []);
 
   /*
+   * Load the signed-in creator's invitations for the dashboard.
+   */
+  useEffect(() => {
+    if (!session || isDatabaseRecipientLink || isLegacyRecipientLink || passwordRecovery) return;
+
+    let active = true;
+    async function loadCreatorInvitations() {
+      setDashboardLoading(true);
+      setDashboardError("");
+      try {
+        const records = await getCreatorInvitations();
+        if (active) setCreatorInvitations(records);
+      } catch (error) {
+        console.error("Unable to load creator invitations:", error);
+        if (active) {
+          setDashboardError(error instanceof Error ? error.message : "Your invitations could not be loaded.");
+        }
+      } finally {
+        if (active) setDashboardLoading(false);
+      }
+    }
+    void loadCreatorInvitations();
+    return () => { active = false; };
+  }, [session, isDatabaseRecipientLink, isLegacyRecipientLink, passwordRecovery]);
+
+  async function refreshCreatorInvitations() {
+    setDashboardLoading(true);
+    setDashboardError("");
+    try {
+      setCreatorInvitations(await getCreatorInvitations());
+    } catch (error) {
+      setDashboardError(error instanceof Error ? error.message : "Your invitations could not be loaded.");
+    } finally {
+      setDashboardLoading(false);
+    }
+  }
+
+  /*
    * Load a published invitation using its public token.
    * Recipients do not need a creator account.
    */
