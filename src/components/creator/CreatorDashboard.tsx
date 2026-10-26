@@ -7,6 +7,8 @@ type CreatorDashboardProps = {
   loading: boolean;
   error: string;
   onCreate: () => void;
+  onPreview: (invitation: PublishedInvitation) => void;
+  onViewResponse: (invitation: PublishedInvitation) => void;
   onEdit: (invitation: PublishedInvitation) => void;
   onRefresh: () => void;
   onSignOut: () => void;
@@ -46,6 +48,8 @@ export function CreatorDashboard({
   loading,
   error,
   onCreate,
+  onPreview,
+  onViewResponse,
   onEdit,
   onRefresh,
   onSignOut,
@@ -175,9 +179,21 @@ export function CreatorDashboard({
                   <span className={`dashboard-status ${statusClass(record)}`}>{record.status === "archived" ? "Archived" : responseLabel(record)}</span>
                   <span className="dashboard-row-created">Created {dateLabel(record.created_at.slice(0, 10))}</span>
                 </div>
-                <button type="button" className="dashboard-row-open" onClick={() => onEdit(record)} aria-label={`Manage invitation for ${recipientName(record)}`}>
-                  Manage <span aria-hidden="true">↗</span>
-                </button>
+                <div className="dashboard-row-actions">
+                  <button type="button" className="dashboard-row-action" onClick={() => onPreview(record)}>
+                    Preview
+                  </button>
+                  {record.response ? (
+                    <button type="button" className="dashboard-row-action dashboard-row-action--response" onClick={() => onViewResponse(record)}>
+                      View response
+                    </button>
+                  ) : (
+                    <span className="dashboard-row-pending" aria-label="No response received yet">Waiting</span>
+                  )}
+                  <button type="button" className="dashboard-row-action" onClick={() => onEdit(record)}>
+                    Edit
+                  </button>
+                </div>
               </article>
             ))}
           </div>
