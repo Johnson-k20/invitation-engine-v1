@@ -218,3 +218,49 @@
 @media (prefers-reduced-motion: reduce) {
   .keepsake-dashboard * { transition-duration: .01ms !important; }
 }
+
+
+/* Clear, separate actions for the invitation lifecycle. */
+.dashboard-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.dashboard-row-action {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--dash-line);
+  border-radius: 3px;
+  background: var(--dash-card);
+  color: #62564f;
+  font: 500 .66rem Inter, sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dashboard-row-action:hover {
+  border-color: rgba(169, 111, 95, .55);
+  color: var(--dash-accent);
+}
+.dashboard-row-action--response {
+  border-color: rgba(169, 111, 95, .45);
+  background: #f7eee8;
+  color: #8d5d4f;
+}
+.dashboard-row-pending {
+  padding: 0 3px;
+  color: #a1968d;
+  font: .63rem Inter, sans-serif;
+  white-space: nowrap;
+}
+@media (max-width: 760px) {
+  .dashboard-invitation-row { grid-template-columns: 34px minmax(0, 1fr); }
+  .dashboard-row-status-wrap { grid-column: 2; grid-row: auto; }
+  .dashboard-row-actions { grid-column: 2; justify-content: flex-start; }
+}
+@media (max-width: 480px) {
+  .dashboard-invitation-row { grid-template-columns: 30px minmax(0, 1fr); }
+  .dashboard-row-actions { gap: 6px; }
+  .dashboard-row-action { min-height: 31px; padding-inline: 8px; font-size: .62rem; }
+}
