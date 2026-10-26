@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import "./RecipientExperience.css";
+
 
 import {
   CalendarDays,
@@ -11,7 +13,15 @@ import {
 import type {
   ExperienceBeat,
   Invitation,
-} from "../../experience/types.ts";
+} from "../../experience/types";
+
+import { supabase } from "../../lib/supabase";
+
+type RecipientExperienceProps = {
+  invitation: Invitation;
+  experience: ExperienceBeat[];
+  publicToken?: string;
+};
 
 type Stage =
   | "opening"
@@ -20,617 +30,51 @@ type Stage =
   | "complete"
   | "declined";
 
-type RecipientExperienceProps = {
-  invitation: Invitation;
-  experience: ExperienceBeat[];
+type ResponseType = "accepted" | "another_time";
+
+type ResponseResult = {
+  success?: boolean;
+  error?: string;
 };
 
-export default function RecipientExperience({
-  invitation,
-  experience,
-}: RecipientExperienceProps) {
-  const [stage, setStage] = useState<Stage>("opening");
-  const [visibleBeats, setVisibleBeats] = useState(0);
+type Destination = Invitation["destination"];
 
-  const opening = experience.find(
-    (beat) => beat.type === "opening"
-  );
+const REVEAL_ORDER = [
+  "activity",
+  "food",
+  "destination",
+  "wear",
+  "note",
+] as const;
 
-  const ask = experience.find(
-    (beat) => beat.type === "ask"
-  );
-
-  const schedule = experience.find(
-    (beat) => beat.type === "schedule"
-  );
-
-  const revealIntro = experience.find(
-    (beat) => beat.type === "reveal-intro"
-  );
-
-  const closing = experience.find(
-    (beat) => beat.type === "closing"
-  );
-
-  const revealBeats = useMemo(
-    () =>
-      experience.filter(
-        (beat) =>
-          beat.type === "activity" ||
-          beat.type === "food" ||
-          beat.type === "destination" ||
-          beat.type === "wear" ||
-          beat.type === "note"
-      ),
-    [experience]
-  );
-
-  const finalRevealBeats = useMemo(() => {
-    const orderedTypes: ExperienceBeat["type"][] = [
-      "activity",
-      "food",
-      "destination",
-      "wear",
-      "note",
-    ];
-
-    const ordered = orderedTypes.flatMap((type) =>
-      revealBeats.filter((beat) => beat.type === type)
-    );
-
-    const hasDestination = ordered.some(
-      (beat) => beat.id === "destination"
-    );
-
-    if (
-      invitation.destination.reveal === "after-accept" &&
-      !hasDestination
-    ) {
-      const destinationBeat: ExperienceBeat = {
-        id: "destination",
-        type: "destination",
-        content: {
-          title: invitation.destination.name,
-          body: invitation.destination.area,
-        },
-        delay: 500,
-        hold: 2500,
-      };
-
-      const noteIndex = ordered.findIndex(
-        (beat) => beat.type === "note"
-      );
-
-      if (noteIndex >= 0) {
-        ordered.splice(noteIndex, 0, destinationBeat);
-      } else {
-        ordered.push(destinationBeat);
-      }
-    }
-
-    return ordered;
-  }, [revealBeats, invitation.destination]);
-
-  const mapUrl = useMemo(
-    () => getMapUrl(invitation),
-    [invitation]
-  );
-
-  function openQuestion() {
-    setStage("question");
+function getRevealDelay(beat: ExperienceBeat): number {
+  if (beat.hold > 0) {
+    return beat.hold;
   }
 
-  function acceptInvitation() {
-    setVisibleBeats(0);
-    setStage("revealing");
-  }
+  const delays: Record<string, number> = {
+    activity: 1700,
+    food: 1600,
+    destination: 2000,
+    wear: 1600,
+    note: 3500,
+    closing: 2500,
+  };
 
-  function declineInvitation() {
-    setStage("declined");
-  }
-
-  useEffect(() => {
-    if (stage !== "revealing") {
-      return;
-    }
-
-    // Stop at the end of the plan.
-    // Do not automatically show the "See you soon" page.
-    if (visibleBeats >= finalRevealBeats.length) {
-      return;
-    }
-
-    const currentBeat = finalRevealBeats[visibleBeats];
-
-    const delay = currentBeat
-      ? getRevealDelay(currentBeat)
-      : 1200;
-
-    const timeout = window.setTimeout(() => {
-      setVisibleBeats((current) => current + 1);
-    }, delay);
-
-    return () => window.clearTimeout(timeout);
-  }, [stage, visibleBeats, finalRevealBeats]);
-
-  function addToCalendar() {
-    const start = parseLocalDateTime(
-      invitation.schedule.date,
-      invitation.schedule.time
-    );
-
-    if (!start) {
-      window.alert(
-        "The date or time is invalid. Please ask for a corrected invitation."
-      );
-      return;
-    }
-
-    // Use a default duration of two hours.
-    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
-
-    const activity =
-      invitation.details.activity?.trim() || "";
-
-    const food =
-      invitation.details.food?.trim() || "";
-
-    const location = [
-      invitation.destination.name,
-      invitation.destination.area,
-    ]
-      .filter(Boolean)
-      .join(", ");
-
-    const description = [
-      invitation.question,
-      activity ? `Activity: ${activity}` : "",
-      food ? `Food: ${food}` : "",
-      invitation.details.wear
-        ? `What to wear: ${invitation.details.wear}`
-        : "",
-      invitation.note
-        ? `A note: ${invitation.note}`
-        : "",
-    ]
-      .filter(Boolean)
-      .join("\n");
-
-    const icsContent = [
-      "BEGIN:VCALENDAR",
-      "VERSION:2.0",
-      "PRODID:-//Invitation Engine//Invitation//EN",
-      "CALSCALE:GREGORIAN",
-      "BEGIN:VEVENT",
-      `UID:${escapeICS(invitation.id)}@invitation-engine`,
-      `DTSTAMP:${formatUTCDate(new Date())}`,
-      `DTSTART:${formatLocalICSDate(start)}`,
-      `DTEND:${formatLocalICSDate(end)}`,
-      `SUMMARY:${escapeICS(invitation.question)}`,
-      `LOCATION:${escapeICS(location)}`,
-      `DESCRIPTION:${escapeICS(description)}`,
-      "END:VEVENT",
-      "END:VCALENDAR",
-    ].join("\r\n");
-
-    const blob = new Blob(
-      [icsContent],
-      {
-        type: "text/calendar;charset=utf-8",
-      }
-    );
-
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = "my-invitation.ics";
-
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    URL.revokeObjectURL(url);
-  }
-
-  return (
-    <main className={`experience-screen experience-${stage}`}>
-      <div className="experience-stage">
-        {/* PERSONALIZED OPENING */}
-        {stage === "opening" && (
-          <section className="opening-content">
-            <div className="opening-topline">
-              <span className="opening-topline-dot" />
-              <span>A LITTLE SOMETHING FOR YOU</span>
-              <span className="opening-topline-dot" />
-            </div>
-
-            <div className="opening-personal">
-              <p className="opening-prelude">
-                This is for
-              </p>
-
-              <h1 className="opening-name">
-                {invitation.recipient.name}
-                <span className="opening-name-period">
-                  .
-                </span>
-              </h1>
-            </div>
-
-            <div
-              className="opening-divider"
-              aria-hidden="true"
-            >
-              <span className="opening-divider-line" />
-              <span className="opening-divider-center">
-                ✳
-              </span>
-              <span className="opening-divider-line" />
-            </div>
-
-            <div className="opening-message-wrap">
-              <p className="opening-message">
-                {opening?.content.body ??
-                  "I made something for you."}
-              </p>
-
-              <p className="opening-subtext">
-                Nothing complicated. Just a little moment,
-                made with you in mind.
-              </p>
-            </div>
-
-            <button
-              className="experience-button opening-button"
-              onClick={openQuestion}
-              type="button"
-            >
-              <span>Open your invitation</span>
-
-              <span
-                className="opening-button-arrow"
-                aria-hidden="true"
-              >
-                ↗
-              </span>
-            </button>
-
-            <p className="opening-footer">
-              MADE JUST FOR YOU
-            </p>
-          </section>
-        )}
-
-        {/* INVITATION QUESTION */}
-        {stage === "question" && (
-          <section className="question-content">
-            <div className="question-topline">
-              <span className="question-topline-line" />
-              <span>A LITTLE QUESTION</span>
-              <span className="question-topline-line" />
-            </div>
-
-            <div className="question-personal">
-              <p className="question-recipient">
-                For <span>{invitation.recipient.name}</span>
-              </p>
-
-              <h1 className="question-title">
-                {ask?.content.title ??
-                  invitation.question}
-              </h1>
-
-              <div
-                className="question-divider"
-                aria-hidden="true"
-              >
-                <span className="question-divider-line" />
-                <span className="question-divider-mark">
-                  ✳
-                </span>
-                <span className="question-divider-line" />
-              </div>
-            </div>
-
-            <div className="question-schedule">
-              <span className="question-calendar-icon">
-                <CalendarDays
-                  size={19}
-                  strokeWidth={1.5}
-                />
-              </span>
-
-              <div className="question-schedule-copy">
-                <p className="question-schedule-date">
-                  {schedule?.content.title}
-                </p>
-
-                <p className="question-schedule-time">
-                  {schedule?.content.body}
-                </p>
-              </div>
-            </div>
-
-            <div className="question-actions">
-              <button
-                className="experience-button question-primary-button"
-                onClick={acceptInvitation}
-                type="button"
-              >
-                <span>I'm in</span>
-
-                <span
-                  className="question-button-arrow"
-                  aria-hidden="true"
-                >
-                  ↗
-                </span>
-              </button>
-
-              <button
-                className="experience-text-button question-secondary-button"
-                onClick={declineInvitation}
-                type="button"
-              >
-                Maybe another day
-              </button>
-            </div>
-
-            <p className="question-footer">
-              NO PRESSURE. JUST ASKING.
-            </p>
-          </section>
-        )}
-
-        {/* PROGRESSIVE PLAN REVEAL */}
-        {stage === "revealing" && (
-          <section className="reveal-screen">
-            <header className="reveal-header">
-              <h1>{invitation.recipient.name}</h1>
-
-              {revealIntro?.content.body && (
-                <p>{revealIntro.content.body}</p>
-              )}
-            </header>
-
-            <div className="reveal-content">
-              {finalRevealBeats
-                .slice(0, visibleBeats)
-                .map((beat) => (
-                  <RevealBeat
-                    key={beat.id}
-                    beat={beat}
-                    mapUrl={mapUrl}
-                  />
-                ))}
-            </div>
-            
-{visibleBeats >= finalRevealBeats.length && (
-  <section className="reveal-continue">
-    <div
-      className="reveal-ending-ornament"
-      aria-hidden="true"
-    >
-      <span />
-      <span className="reveal-ending-star">✳</span>
-      <span />
-    </div>
-
-    <p className="reveal-ending-eyebrow">
-      UNTIL THEN
-    </p>
-
-    <p className="reveal-continue-message">
-      {closing?.content.body ?? "See you soon."}
-    </p>
-
-    <p className="reveal-calendar-caption">
-      Keep the date close.
-    </p>
-
-    <button
-      className="reveal-calendar-button"
-      type="button"
-      onClick={addToCalendar}
-    >
-      <span className="reveal-calendar-icon">
-        <CalendarDays
-          size={19}
-          strokeWidth={1.6}
-        />
-      </span>
-
-      <span className="reveal-calendar-button-copy">
-        <span className="reveal-calendar-button-title">
-          Add to calendar
-        </span>
-
-        <span className="reveal-calendar-button-subtitle">
-          Save our plans for later
-        </span>
-      </span>
-
-      <span
-        className="reveal-calendar-arrow"
-        aria-hidden="true"
-      >
-        ↗
-      </span>
-    </button>
-
-    <p className="reveal-ending-footer">
-      MADE JUST FOR YOU
-    </p>
-  </section>
-)}
-       
-          </section>
-        )}
-
-        {/* COMPLETION - RETAINED FOR FUTURE USE */}
-        {stage === "complete" && (
-          <section className="ending-content">
-            <p className="ending-message">
-              {closing?.content.body ?? "See you soon."}
-            </p>
-
-            <h1 className="ending-title">
-              You're in.
-            </h1>
-
-            <button
-              className="experience-button"
-              type="button"
-              onClick={addToCalendar}
-            >
-              <CalendarDays size={18} />
-              Add to calendar
-            </button>
-          </section>
-        )}
-
-        {/* DECLINED */}
-        {stage === "declined" && (
-          <section className="ending-content">
-            <p className="ending-message">
-              No pressure. Another time.
-            </p>
-
-            <button
-              className="experience-text-button"
-              onClick={() => setStage("opening")}
-              type="button"
-            >
-              Back
-            </button>
-          </section>
-        )}
-      </div>
-    </main>
-  );
+  return delays[beat.type] ?? beat.delay ?? 1400;
 }
 
-/* ========================================
-   REVEAL CONTENT
-======================================== */
-
-function RevealBeat({
-  beat,
-  mapUrl,
-}: {
-  beat: ExperienceBeat;
-  mapUrl: string;
-}) {
-  switch (beat.type) {
-    case "activity":
-      return (
-        <article className="reveal-detail">
-          <Footprints size={18} strokeWidth={1.6} />
-          <p>{beat.content.title}</p>
-        </article>
-      );
-
-    case "food":
-      return (
-        <article className="reveal-detail">
-          <Utensils size={18} strokeWidth={1.6} />
-          <p>{beat.content.body}</p>
-        </article>
-      );
-
-    case "destination":
-      if (beat.id === "destination-hint") {
-        return (
-          <article className="reveal-destination-hint">
-            {beat.content.title && (
-              <p>{beat.content.title}</p>
-            )}
-
-            {beat.content.body && (
-              <p>{beat.content.body}</p>
-            )}
-          </article>
-        );
-      }
-
-      return (
-        <article className="reveal-destination">
-          <MapPin size={19} strokeWidth={1.6} />
-
-          <div className="reveal-destination-copy">
-            <h2>{beat.content.title}</h2>
-
-            {beat.content.body && (
-              <p>{beat.content.body}</p>
-            )}
-
-            <a
-              href={mapUrl}
-              target="_blank"
-              rel="noreferrer"
-            >
-              View location
-            </a>
-          </div>
-        </article>
-      );
-
-    case "wear":
-      return (
-        <article className="reveal-detail reveal-wear">
-          <Shirt size={18} strokeWidth={1.6} />
-
-          <p>
-            <span>Wear:</span> {beat.content.body}
-          </p>
-        </article>
-      );
-
-    case "note":
-      return (
-        <article className="reveal-note">
-          <p>{beat.content.body}</p>
-        </article>
-      );
-
-    default:
-      return null;
-  }
-}
-
-function getRevealDelay(
-  beat: ExperienceBeat
-): number {
-  switch (beat.type) {
-    case "activity":
-      return 1700;
-
-    case "food":
-      return 1600;
-
-    case "destination":
-      return 2000;
-
-    case "wear":
-      return 1600;
-
-    case "note":
-      return 3500;
-
-    default:
-      return 1400;
-  }
-}
-
-function getMapUrl(invitation: Invitation): string {
-  const suppliedUrl = invitation.destination.mapUrl;
+function getMapUrl(destination: Destination): string | null {
+  const suppliedUrl = destination.mapUrl?.trim();
 
   if (suppliedUrl) {
     try {
       const parsedUrl = new URL(suppliedUrl);
 
-      if (parsedUrl.protocol === "https:") {
+      if (
+        parsedUrl.protocol === "https:" ||
+        parsedUrl.protocol === "http:"
+      ) {
         return parsedUrl.toString();
       }
     } catch {
@@ -639,36 +83,56 @@ function getMapUrl(invitation: Invitation): string {
   }
 
   const location = [
-    invitation.destination.name,
-    invitation.destination.area,
+    destination.name,
+    destination.area,
+    destination.hint,
   ]
     .filter(Boolean)
-    .join(" ");
+    .join(", ");
 
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    location
-  )}`;
+  if (!location.trim()) {
+    return null;
+  }
+
+  return (
+    "https://www.google.com/maps/search/?api=1&query=" +
+    encodeURIComponent(location)
+  );
 }
 
-function parseLocalDateTime(
+function escapeCalendarText(value: string): string {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\r?\n/g, "\\n")
+    .replace(/,/g, "\\,")
+    .replace(/;/g, "\\;");
+}
+
+function toCalendarDate(
   date: string,
   time: string
-): Date | null {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+): string | null {
+  const dateMatch = date.match(
+    /^(\d{4})-(\d{2})-(\d{2})$/
+  );
+
+  if (!dateMatch) {
     return null;
   }
 
-  if (!/^\d{2}:\d{2}$/.test(time)) {
+  const timeMatch = time.match(
+    /^(\d{1,2}):(\d{2})$/
+  );
+
+  if (!timeMatch) {
     return null;
   }
 
-  const [year, month, day] = date
-    .split("-")
-    .map(Number);
-
-  const [hours, minutes] = time
-    .split(":")
-    .map(Number);
+  const year = Number(dateMatch[1]);
+  const month = Number(dateMatch[2]);
+  const day = Number(dateMatch[3]);
+  const hours = Number(timeMatch[1]);
+  const minutes = Number(timeMatch[2]);
 
   if (
     month < 1 ||
@@ -683,52 +147,794 @@ function parseLocalDateTime(
     return null;
   }
 
-  const result = new Date(
+  const validationDate = new Date(
     year,
     month - 1,
     day,
     hours,
-    minutes,
-    0,
-    0
+    minutes
   );
 
   if (
-    result.getFullYear() !== year ||
-    result.getMonth() !== month - 1 ||
-    result.getDate() !== day
+    validationDate.getFullYear() !== year ||
+    validationDate.getMonth() !== month - 1 ||
+    validationDate.getDate() !== day
   ) {
     return null;
   }
 
-  return result;
-}
-
-function formatLocalICSDate(date: Date): string {
-  const pad = (value: number) =>
-    String(value).padStart(2, "0");
-
   return (
-    `${date.getFullYear()}` +
-    `${pad(date.getMonth() + 1)}` +
-    `${pad(date.getDate())}` +
-    `T${pad(date.getHours())}` +
-    `${pad(date.getMinutes())}` +
-    `${pad(date.getSeconds())}`
+    `${dateMatch[1]}${dateMatch[2]}${dateMatch[3]}` +
+    `T${String(hours).padStart(2, "0")}` +
+    `${String(minutes).padStart(2, "0")}00`
   );
 }
 
-function formatUTCDate(date: Date): string {
-  return date
+function downloadCalendar(invitation: Invitation): void {
+  const date = invitation.schedule.date;
+  const time = invitation.schedule.time;
+
+  const start = toCalendarDate(date, time);
+
+  if (!start) {
+    throw new Error(
+      "The invitation needs a valid date and time before it can be added to your calendar."
+    );
+  }
+
+  const dateTime = new Date(`${date}T${time}:00`);
+
+  if (Number.isNaN(dateTime.getTime())) {
+    throw new Error(
+      "The invitation date or time is invalid."
+    );
+  }
+
+  // Default event duration: one hour.
+  dateTime.setHours(dateTime.getHours() + 1);
+
+  const end =
+    `${dateTime.getFullYear()}` +
+    `${String(dateTime.getMonth() + 1).padStart(2, "0")}` +
+    `${String(dateTime.getDate()).padStart(2, "0")}` +
+    `T${String(dateTime.getHours()).padStart(2, "0")}` +
+    `${String(dateTime.getMinutes()).padStart(2, "0")}00`;
+
+  const destination = invitation.destination;
+
+  const location = [
+    destination.name,
+    destination.area,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  const description = [
+    invitation.details.activity,
+    invitation.details.food
+      ? `Something good: ${invitation.details.food}`
+      : "",
+    invitation.details.wear
+      ? `What to wear: ${invitation.details.wear}`
+      : "",
+    invitation.note ?? "",
+    destination.hint ?? "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const uid =
+    typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2)}`;
+
+  const stamp = new Date()
     .toISOString()
     .replace(/[-:]/g, "")
     .replace(/\.\d{3}/, "");
+
+  const contents = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Invitation Engine//Contemporary Keepsake//EN",
+    "CALSCALE:GREGORIAN",
+    "BEGIN:VEVENT",
+    `UID:${uid}@invitation-engine`,
+    `DTSTAMP:${stamp}`,
+    `DTSTART:${start}`,
+    `DTEND:${end}`,
+    `SUMMARY:${escapeCalendarText(invitation.question)}`,
+    `DESCRIPTION:${escapeCalendarText(description)}`,
+    ...(location
+      ? [`LOCATION:${escapeCalendarText(location)}`]
+      : []),
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+
+  const blob = new Blob([contents], {
+    type: "text/calendar;charset=utf-8",
+  });
+
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+
+  anchor.href = url;
+  anchor.download = "our-plans.ics";
+
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+
+  window.setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 1000);
 }
 
-function escapeICS(value: string): string {
-  return value
-    .replace(/\\/g, "\\\\")
-    .replace(/\r?\n/g, "\\n")
-    .replace(/,/g, "\\,")
-    .replace(/;/g, "\\;");
+function formatSchedule(invitation: Invitation): string {
+  const date = new Date(
+    `${invitation.schedule.date}T12:00:00`
+  );
+
+  const formattedDate = Number.isNaN(date.getTime())
+    ? invitation.schedule.date
+    : new Intl.DateTimeFormat("en-GB", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      }).format(date);
+
+  if (!invitation.schedule.time) {
+    return formattedDate;
+  }
+
+  const match = invitation.schedule.time.match(
+    /^(\d{1,2}):(\d{2})$/
+  );
+
+  if (!match) {
+    return `${formattedDate} · ${invitation.schedule.time}`;
+  }
+
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+
+  if (
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
+    return `${formattedDate} · ${invitation.schedule.time}`;
+  }
+
+  const formattedTime = new Intl.DateTimeFormat(
+    "en-GB",
+    {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    }
+  ).format(new Date(2000, 0, 1, hours, minutes));
+
+  return `${formattedDate} · ${formattedTime}`;
+}
+
+function getBeat(
+  beats: ExperienceBeat[],
+  type: ExperienceBeat["type"]
+): ExperienceBeat | undefined {
+  return beats.find((beat) => beat.type === type);
+}
+
+function makeDestinationBeat(
+  invitation: Invitation
+): ExperienceBeat | null {
+  const destination = invitation.destination;
+
+  const title = destination.name?.trim();
+
+  const body = [
+    destination.area,
+    destination.hint,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  if (!title && !body) {
+    return null;
+  }
+
+  return {
+    id: "destination",
+    type: "destination",
+    content: {
+      title: title || "Somewhere for us",
+      body,
+    },
+    delay: 500,
+    hold: 2500,
+  };
+}
+
+function RevealBeat({
+  beat,
+  invitation,
+}: {
+  beat: ExperienceBeat;
+  invitation: Invitation;
+}) {
+  const title = beat.content.title;
+  const body = beat.content.body;
+
+  const icon =
+    beat.type === "activity" ? (
+      <Footprints aria-hidden="true" />
+    ) : beat.type === "food" ? (
+      <Utensils aria-hidden="true" />
+    ) : beat.type === "destination" ? (
+      <MapPin aria-hidden="true" />
+    ) : beat.type === "wear" ? (
+      <Shirt aria-hidden="true" />
+    ) : null;
+
+  const mapUrl =
+    beat.type === "destination"
+      ? getMapUrl(invitation.destination)
+      : null;
+
+  return (
+    <article
+      className={`recipient-reveal-beat recipient-reveal-${beat.type}`}
+      data-beat={beat.id}
+    >
+      {icon && (
+        <div className="recipient-reveal-icon">
+          {icon}
+        </div>
+      )}
+
+      {title && (
+        <h3 className="recipient-reveal-title">
+          {title}
+        </h3>
+      )}
+
+      {body && (
+        <p className="recipient-reveal-body">
+          {body}
+        </p>
+      )}
+
+      {beat.type === "schedule" && (
+        <p className="recipient-reveal-body">
+          {formatSchedule(invitation)}
+        </p>
+      )}
+
+      {beat.type === "destination" && mapUrl && (
+        <a
+          className="recipient-map-link"
+          href={mapUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <MapPin size={16} aria-hidden="true" />
+          Open the map
+        </a>
+      )}
+    </article>
+  );
+}
+
+export default function RecipientExperience({
+  invitation,
+  experience,
+  publicToken,
+}: RecipientExperienceProps) {
+  const [stage, setStage] = useState<Stage>("opening");
+
+  const [visibleBeats, setVisibleBeats] = useState(0);
+
+  const [submitting, setSubmitting] = useState(false);
+
+  const [responseError, setResponseError] = useState("");
+
+  const [calendarError, setCalendarError] = useState("");
+
+  const [savedResponse, setSavedResponse] =
+    useState<ResponseType | null>(null);
+
+  const openingBeat = useMemo(
+    () => getBeat(experience, "opening"),
+    [experience]
+  );
+
+  const askBeat = useMemo(
+    () => getBeat(experience, "ask"),
+    [experience]
+  );
+
+  const closingBeat = useMemo(
+    () => getBeat(experience, "closing"),
+    [experience]
+  );
+
+  const revealBeats = useMemo(() => {
+    const destinationShouldBeHeld =
+      invitation.destination.reveal === "after-accept";
+
+    const beats = experience.filter((beat) =>
+      REVEAL_ORDER.includes(
+        beat.type as (typeof REVEAL_ORDER)[number]
+      )
+    );
+
+    const result = destinationShouldBeHeld
+      ? beats.filter((beat) => beat.type !== "destination")
+      : [...beats];
+
+    if (
+      destinationShouldBeHeld &&
+      !result.some((beat) => beat.type === "destination")
+    ) {
+      const destinationBeat = makeDestinationBeat(invitation);
+
+      if (destinationBeat) {
+        result.push(destinationBeat);
+      }
+    }
+
+    return result.sort(
+      (a, b) =>
+        REVEAL_ORDER.indexOf(
+          a.type as (typeof REVEAL_ORDER)[number]
+        ) -
+        REVEAL_ORDER.indexOf(
+          b.type as (typeof REVEAL_ORDER)[number]
+        )
+    );
+  }, [experience, invitation]);
+
+  useEffect(() => {
+    if (stage !== "revealing") {
+      return;
+    }
+
+    if (visibleBeats >= revealBeats.length) {
+      const timeout = window.setTimeout(() => {
+        setStage("complete");
+      }, 500);
+
+      return () => window.clearTimeout(timeout);
+    }
+
+    const currentBeat = revealBeats[visibleBeats];
+
+    if (!currentBeat) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setVisibleBeats((current) => current + 1);
+    }, getRevealDelay(currentBeat));
+
+    return () => window.clearTimeout(timeout);
+  }, [stage, visibleBeats, revealBeats]);
+
+  async function saveResponse(
+    response: ResponseType
+  ): Promise<boolean> {
+    if (submitting || savedResponse !== null) {
+      return false;
+    }
+
+    setResponseError("");
+    setSubmitting(true);
+
+    try {
+      // Builder previews and legacy links have no public token.
+      // Keep those experiences usable without a database write.
+      if (!publicToken) {
+        setSavedResponse(response);
+        return true;
+      }
+
+      const { data, error } = await supabase.rpc(
+        "submit_invitation_response",
+        {
+          p_public_token: publicToken,
+          p_response: response,
+        }
+      );
+
+      if (error) {
+        console.error(
+          "Invitation response RPC failed:",
+          {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code,
+          }
+        );
+
+        throw new Error(
+          [
+            error.message,
+            error.details,
+            error.hint,
+            error.code ? `Code: ${error.code}` : "",
+          ]
+            .filter(Boolean)
+            .join(" | ")
+        );
+      }
+
+      const result = data as ResponseResult | null;
+
+      if (!result || result.success !== true) {
+        throw new Error(
+          "The server did not confirm that your response was saved."
+        );
+      }
+
+      setSavedResponse(response);
+
+      return true;
+    } catch (error) {
+      console.error(
+        "Failed to save invitation response:",
+        error
+      );
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred.";
+
+      setResponseError(
+        `Your response wasn't saved: ${message}`
+      );
+
+      return false;
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function acceptInvitation() {
+    if (submitting || savedResponse !== null) {
+      return;
+    }
+
+    const success = await saveResponse("accepted");
+
+    if (!success) {
+      return;
+    }
+
+    setVisibleBeats(0);
+    setStage("revealing");
+  }
+
+  async function declineInvitation() {
+    if (submitting || savedResponse !== null) {
+      return;
+    }
+
+    const success = await saveResponse("another_time");
+
+    if (!success) {
+      return;
+    }
+
+    setStage("declined");
+  }
+
+  function addToCalendar() {
+    setCalendarError("");
+
+    try {
+      downloadCalendar(invitation);
+    } catch (error) {
+      console.error(
+        "Unable to create calendar file:",
+        error
+      );
+
+      setCalendarError(
+        error instanceof Error
+          ? error.message
+          : "Unable to create the calendar file."
+      );
+    }
+  }
+
+  const recipientName = invitation.recipient.name.trim();
+
+  const mood = invitation.mood || "cozy";
+
+  const openingTitle =
+    openingBeat?.content.title ||
+    "I made something for you.";
+
+  const openingBody =
+    openingBeat?.content.body ||
+    (recipientName
+      ? `Something for you, ${recipientName}.`
+      : "A little something, made just for you.");
+
+  const questionTitle =
+    askBeat?.content.title || invitation.question;
+
+  const questionBody = askBeat?.content.body || "";
+
+  const closingTitle =
+    closingBeat?.content.body || "See you soon.";
+
+  const mapUrl = getMapUrl(invitation.destination);
+
+  return (
+    <main
+      className={`recipient-experience mood-${mood}`}
+      data-stage={stage}
+    >
+      <div className="recipient-experience-inner">
+        <div className="recipient-experience-topline">
+          <span />
+          A little something for you
+          <span />
+        </div>
+
+        {stage === "opening" && (
+          <section className="recipient-opening">
+            <div
+              className="recipient-opening-ornament"
+              aria-hidden="true"
+            >
+              ✳
+            </div>
+
+            <p className="recipient-eyebrow">
+              Made with you in mind
+            </p>
+
+            <h1 className="recipient-opening-title">
+              {recipientName
+                ? `For ${recipientName}`
+                : openingTitle}
+            </h1>
+
+            <p className="recipient-opening-copy">
+              {openingBody}
+            </p>
+
+            <div
+              className="recipient-divider"
+              aria-hidden="true"
+            />
+
+            <button
+              type="button"
+              className="recipient-button recipient-button-primary"
+              onClick={() => setStage("question")}
+            >
+              Open your invitation
+            </button>
+          </section>
+        )}
+
+        {stage === "question" && (
+          <section className="recipient-question">
+            <div
+              className="recipient-opening-ornament"
+              aria-hidden="true"
+            >
+              ✳
+            </div>
+
+            <p className="recipient-eyebrow">
+              An invitation for you
+            </p>
+
+            <h1 className="recipient-question-title">
+              {questionTitle}
+            </h1>
+
+            {questionBody && (
+              <p className="recipient-question-copy">
+                {questionBody}
+              </p>
+            )}
+
+            {invitation.note && (
+              <div className="recipient-personal-note">
+                {invitation.note}
+              </div>
+            )}
+
+            <div className="recipient-response-actions">
+              <button
+                type="button"
+                className="recipient-button recipient-button-primary"
+                onClick={() => void acceptInvitation()}
+                disabled={submitting || savedResponse !== null}
+              >
+                {submitting
+                  ? "Saving your response…"
+                  : "I'm in"}
+              </button>
+
+              <button
+                type="button"
+                className="recipient-button recipient-button-secondary"
+                onClick={() => void declineInvitation()}
+                disabled={submitting || savedResponse !== null}
+              >
+                Maybe another day
+              </button>
+            </div>
+
+            {responseError && (
+              <div
+                className="recipient-response-error"
+                role="alert"
+              >
+                <p>{responseError}</p>
+
+                <button
+                  type="button"
+                  className="recipient-button recipient-button-secondary"
+                  onClick={() => setResponseError("")}
+                >
+                  Try again
+                </button>
+              </div>
+            )}
+          </section>
+        )}
+
+        {stage === "revealing" && (
+          <section className="recipient-revealing">
+            <p className="recipient-eyebrow">
+              The plan, little by little
+            </p>
+
+            <h1 className="recipient-reveal-heading">
+              {mood === "playful"
+                ? "Here's what I've got in mind."
+                : mood === "elegant"
+                  ? "The plan."
+                  : "Okay. Here's the plan."}
+            </h1>
+
+            <div className="recipient-reveal-list">
+              {revealBeats
+                .slice(0, visibleBeats)
+                .map((beat) => (
+                  <RevealBeat
+                    key={beat.id}
+                    beat={beat}
+                    invitation={invitation}
+                  />
+                ))}
+            </div>
+
+            {visibleBeats < revealBeats.length && (
+              <div className="recipient-reveal-progress">
+                <span aria-hidden="true" />
+                <p>A little more to come</p>
+              </div>
+            )}
+          </section>
+        )}
+
+        {stage === "complete" && (
+          <section className="recipient-complete">
+            <div
+              className="recipient-opening-ornament"
+              aria-hidden="true"
+            >
+              ✳
+            </div>
+
+            <p className="recipient-eyebrow">
+              It's a plan
+            </p>
+
+            <h1 className="recipient-complete-title">
+              {closingTitle}
+            </h1>
+
+            <div className="recipient-complete-summary">
+              <CalendarDays
+                size={18}
+                aria-hidden="true"
+              />
+
+              <span>{formatSchedule(invitation)}</span>
+            </div>
+
+            <div className="recipient-complete-actions">
+              <button
+                type="button"
+                className="recipient-button recipient-button-primary"
+                onClick={addToCalendar}
+              >
+                <CalendarDays
+                  size={17}
+                  aria-hidden="true"
+                />
+                Add to calendar
+              </button>
+
+              {mapUrl && (
+                <a
+                  className="recipient-button recipient-button-secondary"
+                  href={mapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <MapPin
+                    size={17}
+                    aria-hidden="true"
+                  />
+                  Open the map
+                </a>
+              )}
+            </div>
+
+            {calendarError && (
+              <div
+                className="recipient-response-error"
+                role="alert"
+              >
+                {calendarError}
+              </div>
+            )}
+
+            <p className="recipient-keepsake-footer">
+              A little moment, made personal.
+            </p>
+          </section>
+        )}
+
+        {stage === "declined" && (
+          <section className="recipient-declined">
+            <div
+              className="recipient-opening-ornament"
+              aria-hidden="true"
+            >
+              ✳
+            </div>
+
+            <p className="recipient-eyebrow">
+              Thank you for letting me know
+            </p>
+
+            <h1 className="recipient-declined-title">
+              Another time, then.
+            </h1>
+
+            <p className="recipient-declined-copy">
+              No pressure. We'll find another moment
+              that works for both of us.
+            </p>
+
+            <div
+              className="recipient-divider"
+              aria-hidden="true"
+            />
+
+            <p className="recipient-keepsake-footer">
+              Your response has been saved.
+            </p>
+          </section>
+        )}
+      </div>
+    </main>
+  );
 }

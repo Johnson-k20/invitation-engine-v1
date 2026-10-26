@@ -1,31 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { Session } from "@supabase/supabase-js";
 
 import { CreatorBuilder } from "./components/creator/CreatorBuilder";
 import RecipientExperience from "./components/recipient/RecipientExperience";
+import {
+  AuthPanel,
+  PasswordRecoveryPanel,
+} from "./auth/AuthPanel";
+
+import { supabase } from "./lib/supabase";
+import {
+  publishInvitation,
+  getPublishedInvitation,
+} from "./lib/invitations";
+
 import { defaultInvitation } from "./data/defaultInvitation";
 import { buildDateExperience } from "./experience/buildDateExperience";
 import type { Invitation } from "./experience/types";
 
 type AppMode = "builder" | "preview";
 
-const INVITATION_QUERY = "invite";
-
-function encodeInvitation(invitation: Invitation): string {
-  const json = JSON.stringify(invitation);
-
-  const bytes = new TextEncoder().encode(json);
-
-  let binary = "";
-
-  bytes.forEach((byte) => {
-    binary += String.fromCharCode(byte);
-  });
-
-  return btoa(binary)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/g, "");
-}
+const LEGACY_INVITATION_QUERY = "invite";
+const PUBLIC_TOKEN_QUERY = "token";
 
 function decodeInvitation(value: string): Invitation | null {
   try {
@@ -48,11 +44,7 @@ function decodeInvitation(value: string): Invitation | null {
     const json = new TextDecoder().decode(bytes);
     const parsed: unknown = JSON.parse(json);
 
-    if (!isValidInvitation(parsed)) {
-      return null;
-    }
-
-    return parsed;
+    return isValidInvitation(parsed) ? parsed : null;
   } catch {
     return null;
   }
@@ -61,10 +53,7 @@ function decodeInvitation(value: string): Invitation | null {
 function isValidInvitation(
   value: unknown
 ): value is Invitation {
-  if (
-    typeof value !== "object" ||
-    value === null
-  ) {
+  if (typeof value !== "object" || value === null) {
     return false;
   }
 
@@ -73,20 +62,12 @@ function isValidInvitation(
   if (
     typeof invitation.id !== "string" ||
     typeof invitation.question !== "string" ||
-    typeof invitation.mood !== "string"
-  ) {
-    return false;
-  }
-
-  if (
+    typeof invitation.mood !== "string" ||
     !["cozy", "playful", "elegant"].includes(
       invitation.mood
-    )
+    ) ||
+    invitation.occasion !== "date"
   ) {
-    return false;
-  }
-
-  if (invitation.occasion !== "date") {
     return false;
   }
 
@@ -110,8 +91,7 @@ function isValidInvitation(
     return false;
   }
 
-  const scheduleData =
-    schedule as Record<string, unknown>;
+  const scheduleData = schedule as Record<string, unknown>;
 
   if (
     typeof scheduleData.date !== "string" ||
@@ -134,8 +114,10 @@ function isValidInvitation(
     return false;
   }
 
-  const destinationData =
-    destination as Record<string, unknown>;
+  const destinationData = destination as Record<
+    string,
+    unknown
+  >;
 
   if (
     typeof destinationData.name !== "string" ||
@@ -149,82 +131,355 @@ function isValidInvitation(
   return true;
 }
 
+function StatusScreen({
+  message,
+  detail,
+}: {
+  message: string;
+  detail?: string;
+}) {
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        display: "grid",
+        placeItems: "center",
+        padding: "24px",
+        background: "#faf8f4",
+        color: "#292624",
+        fontFamily: "Inter, sans-serif",
+        textAlign: "center",
+      }}
+    >
+      <section style={{ maxWidth: "420px" }}>
+        <p
+          style={{
+            color: "#a96f5f",
+            fontSize: "11px",
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+          }}
+        >
+          A little something for you
+        </p>
+
+        <h1
+          style={{
+            fontFamily: '"Cormorant Garamond", Georgia, serif',
+            fontSize: "38px",
+            fontWeight: 500,
+          }}
+        >
+          {message}
+        </h1>
+
+        {detail && (
+          <p
+            style={{
+              color: "#77716b",
+              lineHeight: 1.7,
+            }}
+          >
+            {detail}
+          </p>
+        )}
+      </section>
+    </main>
+  );
+}
+
 function App() {
-  const [invitation, setInvitation] =
-    useState<Invitation>(() => {
-      const params = new URLSearchParams(
-        window.location.search
-      );
-
-      const encoded = params.get(INVITATION_QUERY);
-
-      if (!encoded) {
-        return defaultInvitation;
-      }
-
-      return (
-        decodeInvitation(encoded) ?? defaultInvitation
-      );
-    });
-
-  const [mode, setMode] =
-    useState<AppMode>("builder");
-
   const params = new URLSearchParams(
     window.location.search
   );
 
-  const encodedInvitation = params.get(INVITATION_QUERY);
+  const publicToken = params.get(PUBLIC_TOKEN_QUERY);
+  const legacyEncodedInvitation = params.get(
+    LEGACY_INVITATION_QUERY
+  );
 
-  const isRecipientLink = Boolean(encodedInvitation);
+  const isDatabaseRecipientLink = Boolean(publicToken);
+  const isLegacyRecipientLink = Boolean(
+    legacyEncodedInvitation
+  );
 
-  const decodedInvitation = encodedInvitation
-    ? decodeInvitation(encodedInvitation)
+  const legacyInvitation = legacyEncodedInvitation
+    ? decodeInvitation(legacyEncodedInvitation)
     : null;
 
-  const experience = buildDateExperience(invitation);
+  const [invitation, setInvitation] = useState<Invitation>(
+    () => legacyInvitation ?? defaultInvitation
+  );
 
-  function createInvitationLink(
+  const [mode, setMode] = useState<AppMode>("builder");
+
+  const [session, setSession] = useState<Session | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [signingOut, setSigningOut] = useState(false);
+
+  const [passwordRecovery, setPasswordRecovery] =
+    useState(false);
+
+  const [recipientInvitation, setRecipientInvitation] =
+    useState<Invitation | null>(null);
+
+  const [recipientLoading, setRecipientLoading] = useState(
+    isDatabaseRecipientLink
+  );
+
+  const [recipientError, setRecipientError] = useState(false);
+
+  /*
+   * Restore the creator's session and listen for
+   * authentication events, including password recovery.
+   */
+  useEffect(() => {
+    let active = true;
+
+    async function loadSession() {
+      try {
+        const { data, error } =
+          await supabase.auth.getSession();
+
+        if (error) {
+          throw error;
+        }
+
+        if (active) {
+          setSession(data.session);
+        }
+      } catch (error) {
+        console.error(
+          "Unable to restore session:",
+          error
+        );
+      } finally {
+        if (active) {
+          setAuthLoading(false);
+        }
+      }
+    }
+
+    void loadSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(
+      (event, currentSession) => {
+        if (!active) {
+          return;
+        }
+
+        if (event === "PASSWORD_RECOVERY") {
+          setPasswordRecovery(true);
+        }
+
+        setSession(currentSession);
+      }
+    );
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  /*
+   * Load a published invitation using its public token.
+   * Recipients do not need a creator account.
+   */
+  useEffect(() => {
+    if (!publicToken) {
+      setRecipientLoading(false);
+      return;
+    }
+
+    let active = true;
+
+    async function loadRecipientInvitation() {
+      setRecipientLoading(true);
+      setRecipientError(false);
+      setRecipientInvitation(null);
+
+      try {
+        const loadedInvitation =
+          await getPublishedInvitation(publicToken!);
+
+        if (!active) {
+          return;
+        }
+
+        if (
+          !loadedInvitation ||
+          !isValidInvitation(loadedInvitation)
+        ) {
+          setRecipientError(true);
+          return;
+        }
+
+        setRecipientInvitation(loadedInvitation);
+      } catch (error) {
+        console.error(
+          "Unable to load invitation:",
+          error
+        );
+
+        if (active) {
+          setRecipientError(true);
+        }
+      } finally {
+        if (active) {
+          setRecipientLoading(false);
+        }
+      }
+    }
+
+    void loadRecipientInvitation();
+
+    return () => {
+      active = false;
+    };
+  }, [publicToken]);
+
+  /*
+   * Publish an invitation and return its shareable URL.
+   */
+  async function createInvitationLink(
     invitationToShare: Invitation
-  ): string {
-    const encoded = encodeInvitation(invitationToShare);
+  ): Promise<string> {
+    const published = await publishInvitation(
+      invitationToShare
+    );
 
     const url = new URL(window.location.href);
 
     url.search = "";
     url.hash = "";
 
-    url.searchParams.set(INVITATION_QUERY, encoded);
+    url.searchParams.set(
+      PUBLIC_TOKEN_QUERY,
+      published.public_token
+    );
 
     return url.toString();
   }
 
-  if (isRecipientLink) {
-    if (!decodedInvitation) {
-      return (
-        <main className="experience-screen">
-          <section className="ending-content">
-            <h1 className="ending-title">
-              This invitation could not be opened.
-            </h1>
+  /*
+   * Sign the creator out.
+   */
+  async function handleSignOut() {
+    setSigningOut(true);
 
-            <p className="ending-message">
-              The link may be incomplete or invalid.
-              Ask the person who sent it to create a new one.
-            </p>
-          </section>
-        </main>
+    try {
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        throw error;
+      }
+
+      setMode("builder");
+    } catch (error) {
+      console.error("Unable to sign out:", error);
+
+      window.alert(
+        "Sign-out failed. Please try again."
+      );
+    } finally {
+      setSigningOut(false);
+    }
+  }
+
+  /*
+   * Public route: database-backed invitation.
+   */
+  if (isDatabaseRecipientLink) {
+    if (recipientLoading) {
+      return (
+        <StatusScreen message="Opening your invitation..." />
+      );
+    }
+
+    if (
+      recipientError ||
+      !recipientInvitation ||
+      !publicToken
+    ) {
+      return (
+        <StatusScreen
+          message="This invitation could not be opened."
+          detail="The link may be invalid, or the invitation may no longer be available. Ask the person who sent it to check the link."
+        />
       );
     }
 
     return (
       <RecipientExperience
-        invitation={decodedInvitation}
-        experience={buildDateExperience(decodedInvitation)}
+        invitation={recipientInvitation}
+        experience={buildDateExperience(
+          recipientInvitation
+        )}
+        publicToken={publicToken}
       />
     );
   }
 
+  /*
+   * Public route: previously generated encoded invitations.
+   */
+  if (isLegacyRecipientLink) {
+    if (!legacyInvitation) {
+      return (
+        <StatusScreen
+          message="This invitation could not be opened."
+          detail="The link may be incomplete or invalid. Ask the person who sent it to create a new one."
+        />
+      );
+    }
+
+    return (
+      <RecipientExperience
+        invitation={legacyInvitation}
+        experience={buildDateExperience(
+          legacyInvitation
+        )}
+      />
+    );
+  }
+
+  /*
+   * Password recovery.
+   */
+  if (passwordRecovery) {
+    return (
+      <PasswordRecoveryPanel
+        onComplete={() => {
+          setPasswordRecovery(false);
+        }}
+      />
+    );
+  }
+
+  /*
+   * Wait for the initial authentication check.
+   */
+  if (authLoading) {
+    return (
+      <StatusScreen message="Preparing your invitation studio..." />
+    );
+  }
+
+  /*
+   * Authentication screen.
+   */
+  if (!session) {
+    return <AuthPanel />;
+  }
+
+  const experience = buildDateExperience(invitation);
+
+  /*
+   * Creator preview mode.
+   */
   if (mode === "preview") {
     return (
       <div className="preview-shell">
@@ -244,13 +499,42 @@ function App() {
     );
   }
 
+  /*
+   * Authenticated creator builder.
+   */
   return (
-    <CreatorBuilder
-      invitation={invitation}
-      onChange={setInvitation}
-      onPreview={() => setMode("preview")}
-      onCreateLink={createInvitationLink}
-    />
+    <>
+      <button
+        type="button"
+        onClick={handleSignOut}
+        disabled={signingOut}
+        aria-label="Sign out of your account"
+        style={{
+          position: "fixed",
+          top: "16px",
+          right: "18px",
+          zIndex: 1000,
+          padding: "9px 14px",
+          border: "1px solid #ded8d0",
+          borderRadius: "6px",
+          background: "#faf8f4",
+          color: "#292624",
+          fontFamily: "Inter, sans-serif",
+          fontSize: "12px",
+          cursor: signingOut ? "wait" : "pointer",
+          opacity: signingOut ? 0.65 : 1,
+        }}
+      >
+        {signingOut ? "Signing out..." : "Sign out"}
+      </button>
+
+      <CreatorBuilder
+        invitation={invitation}
+        onChange={setInvitation}
+        onPreview={() => setMode("preview")}
+        onCreateLink={createInvitationLink}
+      />
+    </>
   );
 }
 
