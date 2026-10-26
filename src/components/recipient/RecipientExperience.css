@@ -726,3 +726,31 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Keep the sign-off and useful actions attached to the plan they conclude. */
+.recipient-plan-closing {
+  margin-top: 34px;
+  padding-top: 27px;
+  border-top: 1px solid var(--recipient-line);
+}
+.recipient-plan-closing .recipient-complete-title {
+  font-size: clamp(31px, 6vw, 43px);
+}
+.recipient-plan-closing .recipient-complete-summary {
+  margin-top: 12px;
+}
+.recipient-plan-closing .recipient-complete-actions {
+  margin-top: 22px;
+}
+@media (max-width: 480px) {
+  .recipient-plan-closing {
+    margin-top: 26px;
+    padding-top: 22px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .recipient-plan-closing {
+    animation: none;
+  }
+}
