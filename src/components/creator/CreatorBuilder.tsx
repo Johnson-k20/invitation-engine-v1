@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ChangeEvent } from "react";
 import type { Invitation, Mood } from "../../experience/types";
+import { moods as moodConfigs } from "../../experience/moods";
 import "./CreatorBuilder.css";
 
 type CreatorBuilderProps = {
@@ -99,13 +100,22 @@ export default function CreatorBuilder({
             <p className="keepsake-subtitle">Start with what you want to ask. The details can find their place around it.</p>
             <div className="keepsake-title-rule"><span>✦</span></div>
           </div>
-          <aside className="keepsake-live-note" aria-label="Live invitation preview">
-            <span className="keepsake-live-note-label">A GLIMPSE OF YOUR INVITATION</span>
+          <aside
+            className={`keepsake-live-note keepsake-live-note--${invitation.mood}`}
+            aria-label={`Live invitation preview, ${moodConfigs[invitation.mood].name} mood`}
+          >
+            <span className="keepsake-live-note-label">LIVE INVITATION PREVIEW</span>
             <span className="keepsake-live-note-flower" aria-hidden="true">✳</span>
             <p className="keepsake-live-recipient">{invitation.recipient.name.trim() || "Someone special"}</p>
             <p className="keepsake-live-question">{invitation.question.trim() || "Your question will live here."}</p>
+            <p className="keepsake-live-opening">{moodConfigs[invitation.mood].opening}</p>
+            <div className="keepsake-live-plan" aria-label="Plan preview">
+              <span>{invitation.details.activity?.trim() || "Your activity"}</span>
+              <span aria-hidden="true">·</span>
+              <span>{invitation.details.food?.trim() || "Something to eat"}</span>
+            </div>
             <span className="keepsake-live-note-rule" aria-hidden="true" />
-            <span className="keepsake-live-note-signoff">made with a little thought</span>
+            <span className="keepsake-live-note-signoff">{moodConfigs[invitation.mood].closing}</span>
           </aside>
         </div>
       </header>
@@ -176,13 +186,14 @@ export default function CreatorBuilder({
 
           <fieldset className="keepsake-feeling">
             <legend className="keepsake-label">THE FEELING</legend>
-            <p className="keepsake-feeling-hint">Choose the tone that feels right.</p>
+            <p className="keepsake-feeling-hint">Choose a tone to see it take shape.</p>
             <div className="keepsake-moods">
               {moods.map((mood) => (
                 <button
                   type="button"
                   key={mood.id}
                   className={`keepsake-mood${invitation.mood === mood.id ? " is-selected" : ""}`}
+                  data-mood={mood.id}
                   aria-pressed={invitation.mood === mood.id}
                   onClick={() => onChange({ ...invitation, mood: mood.id })}
                 >
@@ -192,7 +203,6 @@ export default function CreatorBuilder({
                 </button>
               ))}
             </div>
-            <p className="keepsake-feeling-footnote">This shapes the voice and pace, not the plans themselves.</p>
           </fieldset>
         </section>
 
