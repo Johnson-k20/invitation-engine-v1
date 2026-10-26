@@ -750,12 +750,6 @@ export default function RecipientExperience({
               </p>
             )}
 
-            {invitation.note && (
-              <div className="recipient-personal-note">
-                {invitation.note}
-              </div>
-            )}
-
             <div className="recipient-response-actions">
               <button
                 type="button"
