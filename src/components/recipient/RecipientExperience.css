@@ -282,6 +282,13 @@
   overflow-wrap: anywhere;
 }
 
+.recipient-destination-hint {
+  margin-top: 22px;
+  color: var(--recipient-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
 .recipient-response-actions {
   display: flex;
   flex-direction: column;
@@ -683,59 +690,6 @@
     padding: 48px 36px;
   }
 
-  .recipient-experience-topline {
-    margin-bottom: 46px;
-  }
-
-  .recipient-opening,
-  .recipient-question,
-  .recipient-complete,
-  .recipient-declined {
-    padding-top: 12px;
-    padding-bottom: 24px;
-  }
-
-  .recipient-opening-copy {
-    margin-top: 26px;
-  }
-
-  .recipient-response-actions,
-  .recipient-complete-actions {
-    gap: 12px;
-  }
-
-  .recipient-reveal-beat {
-    padding: 26px 20px 28px;
-  }
-}
-
-/* =========================================================
-   RESPONSIVE — MOBILE
-========================================================= */
-
-@media (max-width: 480px) {
-  .recipient-experience {
-    align-items: center;
-
-    padding: 28px 22px;
-
-    padding-left: max(22px, env(safe-area-inset-left));
-    padding-right: max(22px, env(safe-area-inset-right));
-  }
-
-  .recipient-experience-topline {
-    gap: 9px;
-
-    margin-bottom: 29px;
-
-    font-size: 9px;
-    letter-spacing: 1px;
-  }
-
-  .recipient-experience-topline span {
-    width: 17px;
-    flex-basis: 17px;
-  }
 
   .recipient-opening,
   .recipient-question,
@@ -745,98 +699,7 @@
     padding-bottom: 12px;
   }
 
-  .recipient-opening-ornament {
-    width: 34px;
-    height: 34px;
-
-    margin-bottom: 20px;
-
-    font-size: 23px;
-  }
-
-  .recipient-eyebrow {
-    margin-bottom: 12px;
-
-    font-size: 9px;
-    letter-spacing: 1.5px;
-  }
-
-  .recipient-opening-title {
-    font-size: clamp(43px, 12vw, 60px);
-    letter-spacing: -1.2px;
-  }
-
-  .recipient-opening-copy {
-    max-width: 280px;
-
-    margin-top: 18px;
-
-    font-size: 19px;
-  }
-
-  .recipient-divider {
-    margin-top: 25px;
-    margin-bottom: 25px;
-  }
-
-  .recipient-button {
-    min-height: 50px;
-    padding: 13px 16px;
-  }
-
-  .recipient-question-title {
-    font-size: clamp(36px, 10vw, 49px);
-    letter-spacing: -0.6px;
-  }
-
-  .recipient-question-copy {
-    margin-top: 14px;
-    font-size: 18px;
-  }
-
-  .recipient-personal-note {
-    margin-top: 23px;
-    padding: 15px 12px;
-
-    font-size: 16px;
-  }
-
-  .recipient-response-actions {
-    margin-top: 26px;
-  }
-
-  .recipient-reveal-heading {
-    margin-bottom: 26px;
-    font-size: 36px;
-  }
-
-  .recipient-reveal-beat {
-    padding: 21px 5px 23px;
-  }
-
-  .recipient-reveal-title {
-    font-size: 24px;
-  }
-
-  .recipient-reveal-body {
-    font-size: 12px;
-  }
-
-  .recipient-complete-title,
-  .recipient-declined-title {
-    font-size: clamp(37px, 10vw, 48px);
-  }
-
-  .recipient-complete-summary,
-  .recipient-declined-copy {
-    font-size: 18px;
-  }
-
-  .recipient-complete-actions {
-    margin-top: 25px;
-  }
-}
-
+  
 /* =========================================================
    SHORT VIEWPORTS
 ========================================================= */
@@ -851,25 +714,7 @@
     margin-bottom: 28px;
   }
 
-  .recipient-opening-ornament {
-    margin-bottom: 14px;
-  }
-
-  .recipient-opening-copy {
-    margin-top: 15px;
-  }
-
-  .recipient-divider {
-    margin-top: 21px;
-    margin-bottom: 21px;
-  }
-
-  .recipient-response-actions,
-  .recipient-complete-actions {
-    margin-top: 22px;
-  }
-}
-
+  
 /* =========================================================
    ACCESSIBILITY
 ========================================================= */
