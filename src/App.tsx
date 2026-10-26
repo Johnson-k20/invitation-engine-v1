@@ -426,7 +426,8 @@ function App() {
         throw error;
       }
 
-      setMode("builder");
+      setMode("dashboard");
+      setEditingInvitationId(null);
     } catch (error) {
       console.error("Unable to sign out:", error);
 
@@ -584,6 +585,31 @@ function App() {
    */
   return (
     <>
+      <button
+        type="button"
+        onClick={() => {
+          setMode("dashboard");
+          setEditingInvitationId(null);
+          void refreshCreatorInvitations();
+        }}
+        aria-label="Return to invitation dashboard"
+        style={{
+          position: "fixed",
+          top: "16px",
+          left: "18px",
+          zIndex: 1000,
+          padding: "9px 14px",
+          border: "1px solid #ded8d0",
+          borderRadius: "6px",
+          background: "#faf8f4",
+          color: "#292624",
+          fontFamily: "Inter, sans-serif",
+          fontSize: "12px",
+          cursor: "pointer",
+        }}
+      >
+        ← Dashboard
+      </button>
       <button
         type="button"
         onClick={handleSignOut}
