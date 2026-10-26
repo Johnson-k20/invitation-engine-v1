@@ -76,26 +76,12 @@ export function buildDateExperience(
       id: "food",
       type: "food",
       content: {
-        body: `Then ${invitation.details.food}.`,
+        body: invitation.details.food,
       },
       delay: 700,
       hold: 2200,
     });
   }
-
-  // Destination hint
- if (invitation.destination.hint) {
-  experience.push({
-    id: "destination-hint",
-    type: "destination",
-    content: {
-      title: "And I know just the place.",
-      body: invitation.destination.hint,
-    },
-    delay: 500,
-    hold: 2800,
-  });
-}
 
   // Destination revealed immediately
   if (invitation.destination.reveal === "before") {

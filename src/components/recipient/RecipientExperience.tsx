@@ -666,14 +666,9 @@ export default function RecipientExperience({
   const mood = invitation.mood || "cozy";
 
   const openingTitle =
-    openingBeat?.content.title ||
-    "I made something for you.";
+    openingBeat?.content.title || recipientName || "Your invitation";
 
-  const openingBody =
-    openingBeat?.content.body ||
-    (recipientName
-      ? `Something for you, ${recipientName}.`
-      : "A little something, made just for you.");
+  const openingBody = openingBeat?.content.body || "";
 
   const questionTitle =
     askBeat?.content.title || invitation.question;
@@ -691,34 +686,19 @@ export default function RecipientExperience({
       data-stage={stage}
     >
       <div className="recipient-experience-inner">
-        <div className="recipient-experience-topline">
-          <span />
-          A little something for you
-          <span />
-        </div>
-
         {stage === "opening" && (
           <section className="recipient-opening">
-            <div
-              className="recipient-opening-ornament"
-              aria-hidden="true"
-            >
-              ✳
-            </div>
-
-            <p className="recipient-eyebrow">
-              Made with you in mind
-            </p>
-
             <h1 className="recipient-opening-title">
               {recipientName
                 ? `For ${recipientName}`
                 : openingTitle}
             </h1>
 
-            <p className="recipient-opening-copy">
-              {openingBody}
-            </p>
+            {openingBody && (
+              <p className="recipient-opening-copy">
+                {openingBody}
+              </p>
+            )}
 
             <div
               className="recipient-divider"
@@ -737,17 +717,6 @@ export default function RecipientExperience({
 
         {stage === "question" && (
           <section className="recipient-question">
-            <div
-              className="recipient-opening-ornament"
-              aria-hidden="true"
-            >
-              ✳
-            </div>
-
-            <p className="recipient-eyebrow">
-              An invitation for you
-            </p>
-
             <h1 className="recipient-question-title">
               {questionTitle}
             </h1>
@@ -757,6 +726,13 @@ export default function RecipientExperience({
                 {questionBody}
               </p>
             )}
+
+            {invitation.destination.reveal === "after-accept" &&
+              invitation.destination.hint?.trim() && (
+                <p className="recipient-question-copy recipient-destination-hint">
+                  {invitation.destination.hint}
+                </p>
+              )}
 
             <div className="recipient-response-actions">
               <button
@@ -801,10 +777,6 @@ export default function RecipientExperience({
 
         {stage === "revealing" && (
           <section className="recipient-revealing">
-            <p className="recipient-eyebrow">
-              The plan, little by little
-            </p>
-
             <h1 className="recipient-reveal-heading">
               {mood === "playful"
                 ? "Here's what I've got in mind."
@@ -836,17 +808,6 @@ export default function RecipientExperience({
 
         {stage === "complete" && (
           <section className="recipient-complete">
-            <div
-              className="recipient-opening-ornament"
-              aria-hidden="true"
-            >
-              ✳
-            </div>
-
-            <p className="recipient-eyebrow">
-              It's a plan
-            </p>
-
             <h1 className="recipient-complete-title">
               {closingTitle}
             </h1>
@@ -898,32 +859,17 @@ export default function RecipientExperience({
               </div>
             )}
 
-            <p className="recipient-keepsake-footer">
-              A little moment, made personal.
-            </p>
           </section>
         )}
 
         {stage === "declined" && (
           <section className="recipient-declined">
-            <div
-              className="recipient-opening-ornament"
-              aria-hidden="true"
-            >
-              ✳
-            </div>
-
-            <p className="recipient-eyebrow">
-              Thank you for letting me know
-            </p>
-
             <h1 className="recipient-declined-title">
               Another time, then.
             </h1>
 
             <p className="recipient-declined-copy">
-              No pressure. We'll find another moment
-              that works for both of us.
+              No pressure. We can find another time.
             </p>
 
             <div
@@ -931,9 +877,6 @@ export default function RecipientExperience({
               aria-hidden="true"
             />
 
-            <p className="recipient-keepsake-footer">
-              Your response has been saved.
-            </p>
           </section>
         )}
       </div>
