@@ -93,7 +93,7 @@ export default function CreatorBuilder({
           <span className="keepsake-overline">A small thing, made personal</span>
           <span className="keepsake-edition">MADE FOR ONE PERSON</span>
         </div>
-        <div className="keepsake-header-composition">
+        <div className={`keepsake-header-composition keepsake-header-composition--${invitation.mood}`}>
           <div className="keepsake-header-copy">
             <p className="keepsake-header-kicker">A note before the plans</p>
             <h1 className="keepsake-title">Make it <em>personal.</em></h1>
@@ -105,10 +105,19 @@ export default function CreatorBuilder({
             aria-label={`Live invitation preview, ${moodConfigs[invitation.mood].name} mood`}
           >
             <span className="keepsake-live-note-label">LIVE INVITATION PREVIEW</span>
-            <span className="keepsake-live-note-flower" aria-hidden="true">✳</span>
+            <span className="keepsake-live-note-flower" aria-hidden="true">
+              {invitation.mood === "playful" ? "✦" : invitation.mood === "elegant" ? "✧" : "✳"}
+            </span>
+            <span className="keepsake-live-mood-mark" aria-hidden="true">
+              {invitation.mood === "cozy" ? "a little note" : invitation.mood === "playful" ? "an idea for us" : "an invitation"}
+            </span>
             <p className="keepsake-live-recipient">{invitation.recipient.name.trim() || "Someone special"}</p>
             <p className="keepsake-live-question">{invitation.question.trim() || "Your question will live here."}</p>
             <p className="keepsake-live-opening">{moodConfigs[invitation.mood].opening}</p>
+            <div className="keepsake-live-schedule" aria-label="When">
+              <span>{invitation.schedule.date ? new Date(`${invitation.schedule.date}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "A day to look forward to"}</span>
+              {invitation.schedule.time && <><span aria-hidden="true">·</span><span>{new Date(`2000-01-01T${invitation.schedule.time}`).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</span></>}
+            </div>
             <div className="keepsake-live-plan" aria-label="Plan preview">
               <span>{invitation.details.activity?.trim() || "Your activity"}</span>
               <span aria-hidden="true">·</span>

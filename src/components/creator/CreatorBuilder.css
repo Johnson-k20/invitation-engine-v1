@@ -546,3 +546,137 @@
 @media (prefers-reduced-motion: reduce) {
   .keepsake-live-opening { transition: none; }
 }
+
+
+/* Distinct mood art direction: the preview changes composition, not only copy. */
+.keepsake-live-mood-mark {
+  display: block;
+  margin-top: 13px;
+  color: var(--ks-accent);
+  font: italic 13px/1.2 var(--ks-serif);
+}
+.keepsake-live-schedule {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+  color: var(--ks-ink);
+  font: 500 10px/1.4 var(--ks-sans);
+  letter-spacing: .025em;
+}
+.keepsake-live-schedule > span:nth-child(2) { color: var(--ks-accent); }
+
+/* Cozy — close, tactile, softly layered. */
+.keepsake-live-note--cozy {
+  padding: 22px 23px 19px;
+  border: 1px solid rgba(169,111,95,.28);
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(225,194,176,.32), transparent 48%),
+    #fffaf5;
+  box-shadow: 0 10px 26px rgba(75,53,40,.07);
+}
+.keepsake-live-note--cozy::before {
+  display: block;
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(169,111,95,.12);
+  content: "";
+  pointer-events: none;
+}
+.keepsake-live-note--cozy .keepsake-live-mood-mark { margin-top: 17px; }
+.keepsake-live-note--cozy .keepsake-live-recipient { margin-top: 8px; font-size: 21px; }
+.keepsake-live-note--cozy .keepsake-live-question { font-size: clamp(2rem, 3vw, 2.55rem); line-height: 1.02; }
+.keepsake-live-note--cozy .keepsake-live-opening { max-width: 245px; font-size: 18px; }
+.keepsake-live-note--cozy .keepsake-live-plan { gap: 8px; margin-top: 13px; }
+
+/* Playful — off-centre rhythm, a bolder question, and a small graphic gesture. */
+.keepsake-header-composition--playful {
+  background:
+    radial-gradient(circle at 91% 15%, rgba(169,111,95,.13) 0 4px, transparent 5px),
+    radial-gradient(circle at 86% 22%, rgba(169,111,95,.10) 0 2px, transparent 3px),
+    linear-gradient(125deg, #fffdf9 0%, #f7e9df 100%);
+}
+.keepsake-live-note--playful {
+  padding: 15px 8px 10px 25px;
+  border: 0;
+  border-left: 2px solid var(--ks-accent);
+  background: transparent;
+  box-shadow: none;
+  transform: rotate(-1.6deg);
+}
+.keepsake-live-note--playful .keepsake-live-note-flower {
+  top: 6px;
+  right: 7px;
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  border: 1px solid rgba(169,111,95,.38);
+  border-radius: 50%;
+  font-size: 19px;
+  transform: rotate(12deg);
+}
+.keepsake-live-note--playful .keepsake-live-mood-mark { font-size: 15px; }
+.keepsake-live-note--playful .keepsake-live-recipient { margin-top: 19px; font-size: 17px; }
+.keepsake-live-note--playful .keepsake-live-question {
+  max-width: 270px;
+  font-size: clamp(2.25rem, 3.4vw, 3rem);
+  line-height: .9;
+  letter-spacing: -.045em;
+}
+.keepsake-live-note--playful .keepsake-live-opening { margin-top: 17px; font-size: 15px; }
+.keepsake-live-note--playful .keepsake-live-note-rule { width: 78px; height: 2px; }
+.keepsake-live-note--playful .keepsake-live-plan { padding: 7px 10px; width: fit-content; max-width: 100%; background: rgba(255,253,249,.72); }
+
+/* Elegant — restrained, aligned, typographic, and intentionally spacious. */
+.keepsake-header-composition--elegant {
+  background: linear-gradient(110deg, #fffdf9 0%, #f8f4ee 100%);
+}
+.keepsake-live-note--elegant {
+  padding: 12px 0 12px 27px;
+  border: 0;
+  border-left: 1px solid rgba(169,111,95,.42);
+  background: transparent;
+  box-shadow: none;
+}
+.keepsake-live-note--elegant .keepsake-live-note-label { letter-spacing: .2em; }
+.keepsake-live-note--elegant .keepsake-live-note-flower { font-size: 15px; }
+.keepsake-live-note--elegant .keepsake-live-mood-mark {
+  margin-top: 24px;
+  font: 10px/1.4 var(--ks-sans);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.keepsake-live-note--elegant .keepsake-live-recipient { margin-top: 13px; font-size: 17px; }
+.keepsake-live-note--elegant .keepsake-live-question {
+  max-width: 270px;
+  font-size: clamp(2rem, 2.8vw, 2.45rem);
+  line-height: 1.08;
+  letter-spacing: -.025em;
+}
+.keepsake-live-note--elegant .keepsake-live-opening {
+  max-width: 230px;
+  margin-top: 17px;
+  font-size: 13px;
+  line-height: 1.6;
+  letter-spacing: .025em;
+}
+.keepsake-live-note--elegant .keepsake-live-schedule {
+  margin-top: 17px;
+  font-size: 9px;
+  letter-spacing: .08em;
+}
+.keepsake-live-note--elegant .keepsake-live-plan { gap: 8px; margin-top: 18px; font-size: 9px; letter-spacing: .06em; }
+.keepsake-live-note--elegant .keepsake-live-note-rule { width: 28px; margin-top: 20px; }
+
+@media (max-width: 820px) {
+  .keepsake-live-note--cozy { padding: 20px 21px 18px; }
+  .keepsake-live-note--playful { padding: 17px 8px 12px 20px; }
+  .keepsake-live-note--elegant { padding: 17px 0 5px 20px; }
+  .keepsake-live-note--playful .keepsake-live-question,
+  .keepsake-live-note--elegant .keepsake-live-question { max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .keepsake-live-note--playful { transform: none; }
+}
