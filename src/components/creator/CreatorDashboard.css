@@ -219,6 +219,21 @@
   .keepsake-dashboard * { transition-duration: .01ms !important; }
 }
 
+/* Keep keyboard navigation visible without changing the resting design. */
+.keepsake-dashboard :is(
+  button,
+  a,
+  input
+):focus-visible {
+  outline: 2px solid var(--dash-accent);
+  outline-offset: 3px;
+}
+
+.keepsake-dashboard .dashboard-search:focus-within {
+  border-color: var(--dash-accent);
+}
+
+
 
 /* Clear, separate actions for the invitation lifecycle. */
 .dashboard-row-actions {
