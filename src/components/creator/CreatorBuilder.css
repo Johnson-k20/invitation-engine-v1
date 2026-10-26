@@ -18,15 +18,15 @@
 }
 .keepsake-builder *, .keepsake-builder *::before, .keepsake-builder *::after { box-sizing: border-box; }
 .keepsake-builder button, .keepsake-builder input, .keepsake-builder textarea { font: inherit; }
-.keepsake-header { position: relative; padding: 0 0 30px; }
+.keepsake-header { position: relative; padding: 0 0 24px; }
 .keepsake-header-meta { display: flex; align-items: center; gap: 11px; color: var(--ks-muted); }
 .keepsake-mark { display: grid; place-items: center; width: 27px; height: 27px; border: 1px solid rgba(169,111,95,.48); border-radius: 50%; color: var(--ks-accent); font-size: 15px; }
 .keepsake-overline { font-size: 10px; letter-spacing: .13em; text-transform: uppercase; }
 .keepsake-edition { margin-left: auto; font-size: 9px; letter-spacing: .16em; }
-.keepsake-title { margin: 19px 0 0; font: 500 clamp(3.25rem, 6vw, 4.4rem)/.92 var(--ks-serif); letter-spacing: -.045em; }
+.keepsake-title { margin: 16px 0 0; font: 500 clamp(3.0rem, 5vw, 3.8rem)/.96 var(--ks-serif); letter-spacing: -.045em; }
 .keepsake-title em { color: var(--ks-accent); font-weight: 400; }
 .keepsake-subtitle { margin: 13px 0 0 2px; color: var(--ks-muted); font-size: 13px; letter-spacing: .005em; }
-.keepsake-title-rule { display: flex; align-items: center; gap: 12px; margin-top: 25px; color: var(--ks-accent); font-size: 10px; }
+.keepsake-title-rule { display: flex; align-items: center; gap: 12px; margin-top: 19px; color: var(--ks-accent); font-size: 10px; }
 .keepsake-title-rule::before, .keepsake-title-rule::after { content: ""; height: 1px; background: var(--ks-line); }
 .keepsake-title-rule::before { width: 45px; }
 .keepsake-title-rule::after { width: min(200px, 24%); }
