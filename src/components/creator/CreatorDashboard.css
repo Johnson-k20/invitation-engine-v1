@@ -425,3 +425,61 @@
 @media (prefers-reduced-motion: reduce) {
   .dashboard-invitation-row { transition: none; }
 }
+
+
+/* Mobile interaction fix: keep the hero action in the normal layout and above
+   decorative/content layers so it remains reachable by touch. */
+@media (max-width: 760px) {
+  .dashboard-intro {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+
+  .dashboard-intro-copy-block,
+  .dashboard-intro-side {
+    position: relative;
+    width: 100%;
+    max-width: none;
+  }
+
+  .dashboard-intro-copy-block {
+    z-index: 1;
+  }
+
+  .dashboard-intro-side {
+    z-index: 2;
+    align-items: stretch;
+    gap: 10px;
+    margin-top: 8px;
+    pointer-events: auto;
+  }
+
+  .dashboard-create-button {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    min-height: 52px;
+    touch-action: manipulation;
+    pointer-events: auto;
+  }
+
+  .dashboard-hero-note {
+    display: block;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-intro {
+    gap: 20px;
+  }
+
+  .dashboard-intro-side {
+    margin-top: 0;
+  }
+
+  .dashboard-create-button {
+    min-height: 54px;
+  }
+}
