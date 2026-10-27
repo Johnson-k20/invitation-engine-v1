@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type TouchEvent } from "react";
 import type { PublishedInvitation } from "../../lib/invitations";
 import "./CreatorDashboard.css";
 
@@ -79,6 +79,13 @@ export function CreatorDashboard({
     });
   }, [filter, invitations, search]);
 
+  function handleCreateTouchEnd(event: TouchEvent<HTMLButtonElement>) {
+    // Mobile fallback: handle the touch directly and suppress the synthetic
+    // click that browsers normally dispatch after touchend.
+    event.preventDefault();
+    onCreate();
+  }
+
   useEffect(() => {
     document.title = "Your invitations · Keepsake";
     return () => { document.title = "Invitation Engine"; };
@@ -109,7 +116,12 @@ export function CreatorDashboard({
         </div>
         <div className="dashboard-intro-side">
           <span className="dashboard-hero-flourish" aria-hidden="true">✳</span>
-          <button type="button" className="dashboard-create-button" onClick={onCreate}>
+          <button
+            type="button"
+            className="dashboard-create-button"
+            onClick={onCreate}
+            onTouchEnd={handleCreateTouchEnd}
+          >
             <span aria-hidden="true">＋</span> Create an invitation <span className="dashboard-create-arrow" aria-hidden="true">↗</span>
           </button>
           <span className="dashboard-hero-note">A thoughtful little thing, made by you.</span>
@@ -174,7 +186,12 @@ export function CreatorDashboard({
             <span className="dashboard-empty-mark" aria-hidden="true">♡</span>
             <h3>{invitations.length === 0 ? "Your collection starts here." : "Nothing matches just yet."}</h3>
             <p>{invitations.length === 0 ? "Create your first invitation and give someone something lovely to open." : "Try another search or filter to find the invitation."}</p>
-            {invitations.length === 0 && <button type="button" className="dashboard-create-button dashboard-create-button--small" onClick={onCreate}>Create your first invitation <span aria-hidden="true">→</span></button>}
+            {invitations.length === 0 && <button
+              type="button"
+              className="dashboard-create-button dashboard-create-button--small"
+              onClick={onCreate}
+              onTouchEnd={handleCreateTouchEnd}
+            >Create your first invitation <span aria-hidden="true">→</span></button>}
           </div>
         ) : (
           <div className="dashboard-invitation-list">
